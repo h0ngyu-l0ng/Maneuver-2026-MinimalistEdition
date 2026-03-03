@@ -10,9 +10,6 @@ export interface Scout {
     /** Scout's name (primary key - matches nav-user sidebar) */
     name: string;
 
-    /** Scout's role within the gamification system */
-    scoutRoles: ScoutRole[];
-
     /** Total stakes including bonuses from achievements */
     stakes: number;
 
