@@ -259,6 +259,7 @@ export function GameSpecificQuestions({ gameData = {}, onGameDataChange }: GameS
         <CardHeader>
           <CardTitle>Fuel Handling</CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fuelCapacity">Fuel Capacity (max pieces held)</Label>
@@ -268,6 +269,28 @@ export function GameSpecificQuestions({ gameData = {}, onGameDataChange }: GameS
               placeholder="e.g., 8"
               value={(gameData.fuelCapacity as number) || ''}
               onChange={(e) => handleChange('fuelCapacity', parseInt(e.target.value) || 0)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="averageScores">Average Scored Balls in 25s (one match cycle)</Label>
+            <Input
+              id="averageScores"
+              type="number"
+              placeholder="e.g., 40"
+              value={(gameData.averageScores as number) || ''}
+              onChange={(e) => handleChange('averageScores', parseInt(e.target.value) || 0)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="shootingAccuracy">Shooting Accuracy (%)</Label>
+            <Input
+              id="shootingAccuracy"
+              type="number"
+              placeholder="e.g., 80%"
+              value={(gameData.shootingAccuracy as number) || ''}
+              onChange={(e) => handleChange('shootingAccuracy', parseInt(e.target.value) || 0)}
             />
           </div>
 
