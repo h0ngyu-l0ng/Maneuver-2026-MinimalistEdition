@@ -51,7 +51,10 @@ const data = {
                   url: "/peer-transfer",
               },
           
-              
+              {
+                title:"Match & Pit Assignments",
+                url: "/pit-assignments",
+              }
 
               
           ]
@@ -91,16 +94,6 @@ const data = {
       ],
         },
 
-
-        {
-      title: "Scout Assignments",
-      url: "#",
-      icon: SquarePen,
-      items: [
-         {
-          title: "Match Scout Assignments",
-          url: "/match-assignments",
-        }
 
 
  {

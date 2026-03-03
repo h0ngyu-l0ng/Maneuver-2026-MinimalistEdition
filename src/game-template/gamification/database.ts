@@ -73,6 +73,7 @@ export const getOrCreateScout = async (name: string): Promise<Scout> => {
         longestStreak: 0,
         createdAt: Date.now(),
         lastUpdated: Date.now(),
+        scoutRoles: [],
     };
 
     await gamificationDB.scouts.put(newScout);

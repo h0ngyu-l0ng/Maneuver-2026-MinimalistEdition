@@ -404,9 +404,9 @@ const PitAssignmentsPage: React.FC = () => {
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Pit Assignments</h1>
+            <h1 className="text-3xl font-bold">Match & Pit Assignments</h1>
             <p className="text-muted-foreground">
-              Manage scouts and assign teams for pit scouting
+              Manage scouts and assign teams for pit & match scouting
             </p>
           </div>
           {/* Data source attribution */}
