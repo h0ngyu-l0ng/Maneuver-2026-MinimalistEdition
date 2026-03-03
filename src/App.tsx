@@ -192,16 +192,18 @@ function App() {
           index 
           element={
             <HomePage 
-              logo={logo} 
-              appName="Maneuver 2026"
-              version="2026.0.9"
-              onLoadDemoData={loadDemoData}
-              onLoadDemoScheduleOnly={loadDemoScheduleOnly}
-              onClearData={clearDemoData}
-              checkExistingData={checkDemoData}
-              demoDataDescription="Load sample data for 30 teams, 60 matches, 8 scouts with predictions, and pit scouting to explore all features"
-              demoDataStats="Demo data loaded! 30 teams, 60 matches, 8 scouts"
-              demoScheduleStats="Demo schedule loaded! 30 teams, 60 matches"
+            //   logo={logo} 
+            //   appName="Maneuver 2026"
+            //   version="2026.0.9"
+            //   onLoadDemoData={loadDemoData}
+            //   onLoadDemoScheduleOnly={loadDemoScheduleOnly}
+            //   onClearData={clearDemoData}
+            //   checkExistingData={checkDemoData}
+            //   demoDataDescription="Load sample data for 30 teams, 60 matches, 8 scouts with predictions, and pit scouting to explore all features"
+            //   demoDataStats="Demo data loaded! 30 teams, 60 matches, 8 scouts"
+            //   demoScheduleStats="Demo schedule loaded! 30 teams, 60 matches"
+            // 
+            
             />
           } 
         />

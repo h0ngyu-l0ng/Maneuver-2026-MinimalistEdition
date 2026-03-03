@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { getOrCreateScoutByName, getScout } from '@/core/lib/scoutGamificationUtils';
+import { ScoutRole } from '../types/gamification';
 
 interface ScoutContextType {
   currentScout: string;
@@ -7,11 +8,17 @@ interface ScoutContextType {
   scoutsList: string[];
   playerStation: string;
   isLoading: boolean;
+
+  scoutRoles: ScoutRole[];
+
   setCurrentScout: (name: string) => Promise<void>;
   setPlayerStation: (station: string) => void;
   addScout: (name: string) => Promise<void>;
   removeScout: (name: string) => Promise<void>;
   refreshScout: () => Promise<void>;
+
+  setScoutRole: (role: ScoutRole[]) => void;
+  toggleScoutRole: (role: ScoutRole) => void;
 }
 
 const ScoutContext = createContext<ScoutContextType | undefined>(undefined);
@@ -34,6 +41,8 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
   const [scoutsList, setScoutsList] = useState<string[]>([]);
   const [playerStation, setPlayerStationState] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [scoutRoles, setScoutRoleState] = useState<ScoutRole[]>([]);
 
   // Load initial data from localStorage
   const loadScouts = useCallback(async () => {
@@ -166,6 +175,24 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
     }
   }, [currentScout]);
 
+  const setScoutRole = useCallback((roles: ScoutRole[]) => {
+    setScoutRoleState(roles);
+    localStorage.setItem('scoutRole', JSON.stringify(roles));
+  }, []);
+
+  const toggleScoutRole = useCallback((role: ScoutRole) => {
+    setScoutRoleState(prevRoles => {
+      let updatedRoles: ScoutRole[];
+      if (prevRoles.includes(role)) {
+        updatedRoles = prevRoles.filter(r => r !== role);
+      } else {
+        updatedRoles = [...prevRoles, role];
+      }
+      localStorage.setItem('scoutRole', JSON.stringify(updatedRoles));
+      return updatedRoles;
+    });
+  }, []);
+
   // Load scouts on mount
   useEffect(() => {
     loadScouts();
@@ -207,11 +234,16 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
     scoutsList,
     playerStation,
     isLoading,
+    scoutRoles,
+    
     setCurrentScout,
     setPlayerStation,
     addScout,
     removeScout,
     refreshScout,
+
+    setScoutRole,
+    toggleScoutRole,
   };
 
   return <ScoutContext.Provider value={value}>{children}</ScoutContext.Provider>;
