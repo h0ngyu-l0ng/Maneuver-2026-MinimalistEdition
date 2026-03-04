@@ -342,6 +342,19 @@ function AutoFieldMapContent({
 
     // Path drawing hook - use current zone bounds
     const currentZoneBounds = ZONE_BOUNDS[currentZone];
+    const allianceFieldBounds = useMemo(() => {
+        const neutralMidX = (ZONE_BOUNDS.neutralZone.xMin + ZONE_BOUNDS.neutralZone.xMax) / 2;
+
+        return alliance === 'red'
+            ? { xMin: neutralMidX, xMax: 1 }
+            : { xMin: 0, xMax: neutralMidX };
+    }, [alliance]);
+    const allianceClipStyle = useMemo(
+        () => ({
+            clipPath: `inset(0 ${(1 - allianceFieldBounds.xMax) * 100}% 0 ${allianceFieldBounds.xMin * 100}%)`,
+        }),
+        [allianceFieldBounds]
+    );
     const {
         drawingPoints: hookDrawingPoints,
         handleDrawStart,
@@ -1219,7 +1232,7 @@ function AutoFieldMapContent({
                 <div
                     ref={containerRef}
                     className={cn(
-                        "relative rounded-lg overflow-hidden border border-slate-700 bg-slate-900 select-none",
+                        "relative rounded-lg overflow-hidden border border-slate-700 bg-transparent select-none",
                         "w-full aspect-2/1",
                         isFullscreen ? "max-h-[85vh] m-auto" : "h-auto",
                         shouldPulseAutoBorder && "border-green-500 animate-pulse",
@@ -1276,86 +1289,88 @@ function AutoFieldMapContent({
                     </div>
                 )}
 
-                {/* Field Background */}
-                <img
-                    src={fieldImage}
-                    alt="2026 Field"
-                    className="w-full h-full object-fill"
-                    style={{ opacity: 0.9 }}
-                />
+                <div className="absolute inset-0" style={allianceClipStyle}>
+                        {/* Field Background */}
+                        <img
+                            src={fieldImage}
+                            alt="2026 Field"
+                            className="absolute inset-0 w-full h-full object-fill"
+                            style={{ opacity: 0.9 }}
+                        />
 
-                {/* Drawing Canvas Layer */}
-                <FieldCanvas
-                    ref={fieldCanvasRef}
-                    actions={actions}
-                    pendingWaypoint={pendingWaypoint}
-                    drawingPoints={hookDrawingPoints}
-                    alliance={alliance}
-                    isFieldRotated={isFieldRotated}
-                    width={canvasDimensions.width}
-                    height={canvasDimensions.height}
-                    isSelectingScore={isSelectingScore}
-                    isSelectingPass={isSelectingPass}
-                    isSelectingCollect={isSelectingCollect}
-                    drawConnectedPaths={true}
-                    drawingZoneBounds={currentZoneBounds}
-                    onPointerDown={handleDrawStart}
-                    onPointerMove={disablePathDrawingTapOnly ? undefined : handleDrawMove}
-                    onPointerUp={handleDrawEnd}
-                />
+                        {/* Drawing Canvas Layer */}
+                        <FieldCanvas
+                            ref={fieldCanvasRef}
+                            actions={actions}
+                            pendingWaypoint={pendingWaypoint}
+                            drawingPoints={hookDrawingPoints}
+                            alliance={alliance}
+                            isFieldRotated={isFieldRotated}
+                            width={canvasDimensions.width}
+                            height={canvasDimensions.height}
+                            isSelectingScore={isSelectingScore}
+                            isSelectingPass={isSelectingPass}
+                            isSelectingCollect={isSelectingCollect}
+                            drawConnectedPaths={true}
+                            drawingZoneBounds={currentZoneBounds}
+                            onPointerDown={handleDrawStart}
+                            onPointerMove={disablePathDrawingTapOnly ? undefined : handleDrawMove}
+                            onPointerUp={handleDrawEnd}
+                        />
 
-                {/* Overlay Buttons */}
-                {!pendingShotTypeWaypoint && !isSelectingScore && !isSelectingPass && !isSelectingCollect && (
-                    <div className="absolute inset-0 z-10">
-                        {actions.length === 0 ? (
-                            <>
-                                {AUTO_START_KEYS.map(key => (
-                                    <FieldButton
-                                        key={key}
-                                        elementKey={key}
-                                        element={FIELD_ELEMENTS[key]!}
-                                        hotkeyLabel={autoStartHotkeyMap[key]}
-                                        isVisible={true}
-                                        onClick={handleElementClick}
-                                        alliance={alliance}
-                                        isFieldRotated={isFieldRotated}
-                                        containerWidth={canvasDimensions.width}
-                                        overrideX={0.28}
-                                        isDisabled={!!(pendingWaypoint || isSelectingScore || isSelectingPass || isSelectingCollect || selectedStartKey)}
-                                    />
-                                ))}
-                            </>
-                        ) : (
-                            <>
-                                {getVisibleElements('auto', currentZone).map(key => {
-                                    const isPersistentStuck = !!stuckStarts[key];
-                                    const isPopupActive = !!(pendingWaypoint || isSelectingScore || isSelectingPass || isSelectingCollect || selectedStartKey);
-                                    const displayElement =
-                                        key === 'hub' && actions.length > 0
-                                            ? { ...FIELD_ELEMENTS[key]!, name: 'Score' }
-                                            : FIELD_ELEMENTS[key]!;
+                        {/* Overlay Buttons */}
+                        {!pendingShotTypeWaypoint && !isSelectingScore && !isSelectingPass && !isSelectingCollect && (
+                            <div className="absolute inset-0 z-10">
+                                {actions.length === 0 ? (
+                                    <>
+                                        {AUTO_START_KEYS.map(key => (
+                                            <FieldButton
+                                                key={key}
+                                                elementKey={key}
+                                                element={FIELD_ELEMENTS[key]!}
+                                                hotkeyLabel={autoStartHotkeyMap[key]}
+                                                isVisible={true}
+                                                onClick={handleElementClick}
+                                                alliance={alliance}
+                                                isFieldRotated={isFieldRotated}
+                                                containerWidth={canvasDimensions.width}
+                                                overrideX={0.28}
+                                                isDisabled={!!(pendingWaypoint || isSelectingScore || isSelectingPass || isSelectingCollect || selectedStartKey)}
+                                            />
+                                        ))}
+                                    </>
+                                ) : (
+                                    <>
+                                        {getVisibleElements('auto', currentZone).map(key => {
+                                            const isPersistentStuck = !!stuckStarts[key];
+                                            const isPopupActive = !!(pendingWaypoint || isSelectingScore || isSelectingPass || isSelectingCollect || selectedStartKey);
+                                            const displayElement =
+                                                key === 'hub' && actions.length > 0
+                                                    ? { ...FIELD_ELEMENTS[key]!, name: 'Score' }
+                                                    : FIELD_ELEMENTS[key]!;
 
-                                    return (
-                                        <FieldButton
-                                            key={key}
-                                            elementKey={key}
-                                            element={displayElement}
-                                            hotkeyLabel={autoElementHotkeys[key]}
-                                            isVisible={true}
-                                            onClick={handleElementClick}
-                                            alliance={alliance}
-                                            isFieldRotated={isFieldRotated}
-                                            containerWidth={canvasDimensions.width}
-                                            isStuck={recordingMode ? false : isPersistentStuck}
-                                            isPotentialStuck={recordingMode ? false : stuckElementKey === key}
-                                            isDisabled={isPopupActive || (isAnyStuck && !isPersistentStuck)}
-                                        />
-                                    );
-                                })}
-                            </>
+                                            return (
+                                                <FieldButton
+                                                    key={key}
+                                                    elementKey={key}
+                                                    element={displayElement}
+                                                    hotkeyLabel={autoElementHotkeys[key]}
+                                                    isVisible={true}
+                                                    onClick={handleElementClick}
+                                                    alliance={alliance}
+                                                    isFieldRotated={isFieldRotated}
+                                                    containerWidth={canvasDimensions.width}
+                                                    isStuck={recordingMode ? false : isPersistentStuck}
+                                                    isPotentialStuck={recordingMode ? false : stuckElementKey === key}
+                                                    isDisabled={isPopupActive || (isAnyStuck && !isPersistentStuck)}
+                                                />
+                                            );
+                                        })}
+                                    </>
+                                )}
+                            </div>
                         )}
-                    </div>
-                )}
+                </div>
 
                 {/* Start Selection Guidance Overlay */}
                 {actions.length === 0 && !selectedStartKey && !pendingShotTypeWaypoint && (

@@ -238,6 +238,19 @@ function TeleopFieldMapContent() {
 
     // Path drawing hook - constrain to active zone bounds
     const currentZoneBounds = activeZone ? ZONE_BOUNDS[activeZone] : undefined;
+    const allianceFieldBounds = useMemo(() => {
+        const neutralMidX = (ZONE_BOUNDS.neutralZone.xMin + ZONE_BOUNDS.neutralZone.xMax) / 2;
+
+        return alliance === 'red'
+            ? { xMin: neutralMidX, xMax: 1 }
+            : { xMin: 0, xMax: neutralMidX };
+    }, [alliance]);
+    const allianceClipStyle = useMemo(
+        () => ({
+            clipPath: `inset(0 ${(1 - allianceFieldBounds.xMax) * 100}% 0 ${allianceFieldBounds.xMin * 100}%)`,
+        }),
+        [allianceFieldBounds]
+    );
     const {
         drawingPoints,
         handleDrawStart,
@@ -1134,7 +1147,7 @@ function TeleopFieldMapContent() {
                 <div
                     ref={containerRef}
                     className={cn(
-                        "relative rounded-lg overflow-hidden border border-slate-700 bg-slate-900 select-none",
+                        "relative rounded-lg overflow-hidden border border-slate-700 bg-transparent select-none",
                         "w-full aspect-[2/1]",
                         isFullscreen ? "max-h-[85vh] m-auto" : "h-auto"
                     )}
@@ -1142,112 +1155,114 @@ function TeleopFieldMapContent() {
                         transform: isFieldRotated ? 'rotate(180deg)' : undefined,
                     }}
                 >
-                    {/* Field Background */}
-                    <img
-                        src={fieldImage}
-                        alt="2026 Field"
-                        className="w-full h-full object-fill"
-                        style={{ opacity: 0.9 }}
-                    />
-
-                    {/* Canvas Layer */}
-                    <FieldCanvas
-                        ref={fieldCanvasRef}
-                        actions={actions}
-                        pendingWaypoint={pendingWaypoint}
-                        drawingPoints={drawingPoints}
-                        alliance={alliance}
-                        isFieldRotated={isFieldRotated}
-                        width={canvasDimensions.width}
-                        height={canvasDimensions.height}
-                        isSelectingScore={isSelectingScore}
-                        isSelectingPass={isSelectingPass}
-                        drawConnectedPaths={false}
-                        drawingZoneBounds={currentZoneBounds}
-                        onPointerDown={handleDrawStart}
-                        onPointerMove={disablePathDrawingTapOnly ? undefined : handleDrawMove}
-                        onPointerUp={handleDrawEnd}
-                    />
-
-                    {/* Zone Overlays - show inactive zones for quick switching */}
-                    {!pendingWaypoint && !pendingShotTypeWaypoint && !isSelectingScore && !isSelectingPass && (
-                        <>
-                            <ZoneOverlay
-                                zone="allianceZone"
-                                isActive={activeZone === 'allianceZone'}
-                                alliance={alliance}
-                                isDisabled={isAnyStuck}
-                                isFieldRotated={isFieldRotated}
-                                onClick={() => handleZoneClick('allianceZone')}
+                    <div className="absolute inset-0" style={allianceClipStyle}>
+                            {/* Field Background */}
+                            <img
+                                src={fieldImage}
+                                alt="2026 Field"
+                                className="absolute inset-0 w-full h-full object-fill"
+                                style={{ opacity: 0.9 }}
                             />
-                            <ZoneOverlay
-                                zone="neutralZone"
-                                isActive={activeZone === 'neutralZone'}
+
+                            {/* Canvas Layer */}
+                            <FieldCanvas
+                                ref={fieldCanvasRef}
+                                actions={actions}
+                                pendingWaypoint={pendingWaypoint}
+                                drawingPoints={drawingPoints}
                                 alliance={alliance}
-                                isDisabled={isAnyStuck}
                                 isFieldRotated={isFieldRotated}
-                                onClick={() => handleZoneClick('neutralZone')}
+                                width={canvasDimensions.width}
+                                height={canvasDimensions.height}
+                                isSelectingScore={isSelectingScore}
+                                isSelectingPass={isSelectingPass}
+                                drawConnectedPaths={false}
+                                drawingZoneBounds={currentZoneBounds}
+                                onPointerDown={handleDrawStart}
+                                onPointerMove={disablePathDrawingTapOnly ? undefined : handleDrawMove}
+                                onPointerUp={handleDrawEnd}
                             />
-                            <ZoneOverlay
-                                zone="opponentZone"
-                                isActive={activeZone === 'opponentZone'}
-                                alliance={alliance}
-                                isDisabled={isAnyStuck}
-                                isFieldRotated={isFieldRotated}
-                                onClick={() => handleZoneClick('opponentZone')}
-                            />
-                        </>
-                    )}
 
-                    {/* Field Buttons (only visible ones for this zone) */}
-                    {activeZone && !pendingWaypoint && !isSelectingScore && !isSelectingPass && (
-                        <>
-                            {visibleElements.map((key) => {
-                                let element = FIELD_ELEMENTS[key];
-                                if (!element) return null;
-
-                                if (key === 'hub') {
-                                    element = {
-                                        ...element,
-                                        name: 'Score',
-                                    };
-                                }
-
-                                // Override obstacle elements to always say "Stuck" in Teleop
-                                if (key.includes('trench') || key.includes('bump')) {
-                                    element = {
-                                        ...element,
-                                        name: 'Stuck?'
-                                    };
-                                }
-
-                                // Add counts for defense and steal buttons
-                                let count: number | undefined = undefined;
-                                if (key === 'defense_alliance' || key === 'defense_neutral' || key === 'defense_opponent') {
-                                    count = totalDefense;
-                                } else if (key === 'steal') {
-                                    count = totalSteal;
-                                }
-
-                                return (
-                                    <FieldButton
-                                        key={key}
-                                        elementKey={key}
-                                        element={element}
-                                        hotkeyLabel={getTeleopHotkeyLabel(key)}
-                                        isVisible={true}
-                                        isDisabled={isAnyStuck && !stuckStarts[key]}
-                                        isStuck={!!stuckStarts[key]}
-                                        count={count}
-                                        onClick={handleElementClick}
+                            {/* Zone Overlays - show inactive zones for quick switching */}
+                            {!pendingWaypoint && !pendingShotTypeWaypoint && !isSelectingScore && !isSelectingPass && (
+                                <>
+                                    <ZoneOverlay
+                                        zone="allianceZone"
+                                        isActive={activeZone === 'allianceZone'}
                                         alliance={alliance}
+                                        isDisabled={isAnyStuck}
                                         isFieldRotated={isFieldRotated}
-                                        containerWidth={canvasDimensions.width}
+                                        onClick={() => handleZoneClick('allianceZone')}
                                     />
-                                );
-                            })}
-                        </>
-                    )}
+                                    <ZoneOverlay
+                                        zone="neutralZone"
+                                        isActive={activeZone === 'neutralZone'}
+                                        alliance={alliance}
+                                        isDisabled={isAnyStuck}
+                                        isFieldRotated={isFieldRotated}
+                                        onClick={() => handleZoneClick('neutralZone')}
+                                    />
+                                    <ZoneOverlay
+                                        zone="opponentZone"
+                                        isActive={activeZone === 'opponentZone'}
+                                        alliance={alliance}
+                                        isDisabled={isAnyStuck}
+                                        isFieldRotated={isFieldRotated}
+                                        onClick={() => handleZoneClick('opponentZone')}
+                                    />
+                                </>
+                            )}
+
+                            {/* Field Buttons (only visible ones for this zone) */}
+                            {activeZone && !pendingWaypoint && !isSelectingScore && !isSelectingPass && (
+                                <>
+                                    {visibleElements.map((key) => {
+                                        let element = FIELD_ELEMENTS[key];
+                                        if (!element) return null;
+
+                                        if (key === 'hub') {
+                                            element = {
+                                                ...element,
+                                                name: 'Score',
+                                            };
+                                        }
+
+                                        // Override obstacle elements to always say "Stuck" in Teleop
+                                        if (key.includes('trench') || key.includes('bump')) {
+                                            element = {
+                                                ...element,
+                                                name: 'Stuck?'
+                                            };
+                                        }
+
+                                        // Add counts for defense and steal buttons
+                                        let count: number | undefined = undefined;
+                                        if (key === 'defense_alliance' || key === 'defense_neutral' || key === 'defense_opponent') {
+                                            count = totalDefense;
+                                        } else if (key === 'steal') {
+                                            count = totalSteal;
+                                        }
+
+                                        return (
+                                            <FieldButton
+                                                key={key}
+                                                elementKey={key}
+                                                element={element}
+                                                hotkeyLabel={getTeleopHotkeyLabel(key)}
+                                                isVisible={true}
+                                                isDisabled={isAnyStuck && !stuckStarts[key]}
+                                                isStuck={!!stuckStarts[key]}
+                                                count={count}
+                                                onClick={handleElementClick}
+                                                alliance={alliance}
+                                                isFieldRotated={isFieldRotated}
+                                                containerWidth={canvasDimensions.width}
+                                            />
+                                        );
+                                    })}
+                                </>
+                            )}
+                    </div>
 
                     {/* Score/Pass Mode Overlay */}
                     {!pendingShotTypeWaypoint && (isSelectingScore || isSelectingPass) && (

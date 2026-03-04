@@ -3,19 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
-import { Input } from "@/core/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
-import { ScoringSections, StatusToggles } from "@/game-template/components";
+import { ScoringSections } from "@/game-template/components";
 import { FIELD_ELEMENTS } from "@/game-template/components/field-map";
 import { formatDurationSecondsLabel } from "@/game-template/duration";
 import { AUTO_PHASE_DURATION_MS } from "@/game-template/constants";
 import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
 import { submitMatchData } from "@/core/lib/submitMatch";
 import { useGame } from "@/core/contexts/GameContext";
-import { workflowConfig } from "@/game-template/game-schema";
 
-const AUTO_CLIMB_START_PRESETS = [20, 15, 10, 5] as const;
 
 const AutoScoringPage = () => {
   const { transformation } = useGame();
@@ -45,9 +42,6 @@ const AutoScoringPage = () => {
   const [scoringActions, setScoringActions] = useState(getSavedState());
   const [robotStatus, setRobotStatus] = useState(getSavedStatus());
   const [undoHistory, setUndoHistory] = useState(getSavedHistory());
-  const autoClimbStartTimeSecRemaining = typeof robotStatus?.autoClimbStartTimeSecRemaining === 'number'
-    ? robotStatus.autoClimbStartTimeSecRemaining
-    : null;
 
   // Save state to localStorage whenever actions change
   useEffect(() => {
@@ -71,12 +65,6 @@ const AutoScoringPage = () => {
     setUndoHistory((prev: any) => [...prev, { type: 'action', data: newAction }]);
   };
 
-  const updateRobotStatus = (updates: Partial<any>) => {
-    // Save current state to undo history BEFORE updating
-    setUndoHistory((history: any) => [...history, { type: 'status', data: robotStatus }]);
-    // Update the status
-    setRobotStatus((prev: any) => ({ ...prev, ...updates }));
-  };
 
   const undoLastAction = () => {
     if (undoHistory.length === 0) {
@@ -108,25 +96,7 @@ const AutoScoringPage = () => {
     });
   };
 
-  const handleAutoClimbStartPreset = (seconds: number) => {
-    updateRobotStatus({
-      autoClimbStartTimeSecRemaining:
-        autoClimbStartTimeSecRemaining === seconds ? null : seconds,
-    });
-  };
 
-  const handleAutoClimbStartInput = (rawValue: string) => {
-    if (rawValue === '') {
-      updateRobotStatus({ autoClimbStartTimeSecRemaining: null });
-      return;
-    }
-
-    const parsed = Number.parseInt(rawValue, 10);
-    if (Number.isNaN(parsed)) return;
-
-    const clamped = Math.max(0, Math.min(20, parsed));
-    updateRobotStatus({ autoClimbStartTimeSecRemaining: clamped });
-  };
 
   const handleProceed = async (finalActions?: any[]) => {
     let actionsToUse = Array.isArray(finalActions) ? finalActions : scoringActions;
@@ -211,10 +181,15 @@ const AutoScoringPage = () => {
   };
 
   return (
+
+
     <div className="h-full flex flex-col items-center pt-12 pb-24 px-4 2xl:pb-6">
       <div className="w-full max-w-7xl">
         <h1 className="text-2xl font-bold pb-4">Autonomous</h1>
       </div>
+
+
+
       <div className="flex flex-col-reverse lg:flex-row items-start gap-0 lg:gap-6 max-w-7xl w-full h-full min-h-0">
 
         {/* Main Scoring Section */}
@@ -282,8 +257,9 @@ const AutoScoringPage = () => {
               </Card>
             )}
 
+
             {/* Recent Actions */}
-            <Card className="h-64">
+            {/* <Card className="h-64">
               <CardHeader>
                 <CardTitle className="text-lg">Recent Actions</CardTitle>
               </CardHeader>
@@ -315,10 +291,10 @@ const AutoScoringPage = () => {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Robot Status Card */}
-            {workflowConfig.pages.showAutoStatus && (
+            {/* {workflowConfig.pages.showAutoStatus && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Robot Status</CardTitle>
@@ -367,7 +343,7 @@ const AutoScoringPage = () => {
                   />
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Undo Button */}
             <Button
@@ -400,7 +376,12 @@ const AutoScoringPage = () => {
 
         </div>
       </div>
+
+
+
     </div>
+
+    
   );
 };
 
