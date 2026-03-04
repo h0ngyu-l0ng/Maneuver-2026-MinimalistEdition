@@ -142,8 +142,11 @@ function App() {
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/match-validation" element={<MatchValidationPage />} />
         <Route path="/dev-utilities" element={<DevUtilitiesPage />} />
-
-
+      <Route path="/pit-assignments" element={<PitAssignmentsPage />} />
+        <Route path="/achievements" element={<AchievementsPage />} />
+        <Route path="/scout-management" element={<ScoutManagementDashboardPage />} />
+        <Route path="/scouts-profile" element={<ScoutProfilesPage />} />
+        
         {/* Add more routes as needed */}
         <Route path="*" element={<NotFoundPage />} />
       </Route>
