@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { getOrCreateScoutByName, getScout } from '@/core/lib/scoutGamificationUtils';
 import { ScoutRole } from '@/core/types/scoutRole';
+import { gamificationDB } from '@/game-template/gamification';
 
 interface ScoutContextType {
   currentScout: string;
@@ -19,6 +20,7 @@ interface ScoutContextType {
 
   updateScoutRoles: (role: ScoutRole[]) => void;
   toggleScoutRole: (role: ScoutRole) => void;
+  toggleScoutRoleFor: (name: string, role: ScoutRole) => Promise<void>;
 }
 
 const ScoutContext = createContext<ScoutContextType | undefined>(undefined);
@@ -179,22 +181,77 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
   const updateScoutRoles = useCallback((roles: ScoutRole[]) => {
     setCurrentScoutRoles(roles);
     localStorage.setItem('currentScoutRoles', JSON.stringify(roles));
-  }, []);
+
+    // Persist to DB and notify other windows/components
+    (async () => {
+      try {
+        if (!currentScout) return;
+        const scout = await getScout(currentScout) || await getOrCreateScoutByName(currentScout);
+        if (scout) {
+          // ensure scout object has scoutRoles
+          // @ts-ignore - underlying DB Scout type
+          scout.scoutRoles = roles;
+          await gamificationDB.scouts.put(scout);
+          window.dispatchEvent(new Event('scoutChanged'));
+        }
+      } catch (err) {
+        console.error('Error persisting scout roles:', err);
+      }
+    })();
+  }, [currentScout]);
 
   const toggleScoutRole = useCallback((role: ScoutRole) => {
-    setCurrentScoutRoles(prevRoles => {
+    // Compute updated roles based on current state, then persist
+    const updatedRoles = currentScoutRoles.includes(role)
+      ? currentScoutRoles.filter(r => r !== role)
+      : [...currentScoutRoles, role];
 
-      let updatedRoles: ScoutRole[];
-        if (prevRoles.includes(role)) {
-          updatedRoles = prevRoles.filter(r => r !== role);
-        } else {
-          updatedRoles = [...prevRoles, role];
+    setCurrentScoutRoles(updatedRoles);
+    localStorage.setItem('currentScoutRoles', JSON.stringify(updatedRoles));
+
+    // Persist to DB and notify other windows/components
+    (async () => {
+      try {
+        if (!currentScout) return;
+        const scout = await getScout(currentScout) || await getOrCreateScoutByName(currentScout);
+        if (scout) {
+          // @ts-ignore
+          scout.scoutRoles = updatedRoles;
+          await gamificationDB.scouts.put(scout);
+          window.dispatchEvent(new Event('scoutChanged'));
         }
-      localStorage.setItem('currentScoutRoles', JSON.stringify(updatedRoles));
-      return updatedRoles;
+      } catch (err) {
+        console.error('Error persisting toggled scout role:', err);
+      }
+    })();
+  }, [currentScout, currentScoutRoles]);
+
+  // Toggle role for arbitrary scout (persist to DB)
+  const toggleScoutRoleFor = useCallback(async (name: string, role: ScoutRole) => {
+    try {
+      if (!name) return;
+      const scout = await getScout(name) || await getOrCreateScoutByName(name);
+      if (!scout) return;
+
+      const prevRoles: ScoutRole[] = scout.scoutRoles || [];
+      const updatedRoles: ScoutRole[] = prevRoles.includes(role) ? prevRoles.filter(r => r !== role) : [...prevRoles, role];
+
+      // @ts-ignore
+      scout.scoutRoles = updatedRoles;
+      await gamificationDB.scouts.put(scout);
+
+      // If we're updating the currently selected scout, sync local state
+      if (name === currentScout) {
+        setCurrentScoutRoles(updatedRoles);
+        localStorage.setItem('currentScoutRoles', JSON.stringify(updatedRoles));
+      }
+
+      // Notify other listeners/tabs
+      window.dispatchEvent(new Event('scoutChanged'));
+    } catch (err) {
+      console.error('Error toggling scout role for', name, err);
     }
-  );
-  }, []);
+  }, [currentScout]);
 
   // Load scouts on mount
   useEffect(() => {
@@ -248,6 +305,7 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
 
     updateScoutRoles,
     toggleScoutRole,
+    toggleScoutRoleFor,
 
   };
 

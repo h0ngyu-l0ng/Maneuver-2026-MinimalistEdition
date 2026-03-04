@@ -40,10 +40,11 @@ import MatchStrategyPage from "@/core/pages/MatchStrategyPage";
 import PickListPage from "@/core/pages/PickListPage";
 // import PitScoutingPage from "@/pages/PitScoutingPage";
 import ScoutManagementDashboardPage from "@/core/pages/ScoutManagementDashboardPage";
+import ScoutProfilesPage from "@/core/pages/ScoutProfilesPage";
 import AchievementsPage from "@/core/pages/AchievementsPage";
 import DevUtilitiesPage from "@/core/pages/DevUtilitiesPage";
 import { MatchValidationPage } from "@/core/pages/MatchValidationPage";
-import PitAssignmentsPage from "@/core/pages/PitAssignmentsPage";
+import PitAssignmentsPage from "@/core/pages/PitAssignmentsPage";import { RequireRoles } from "@/core/components/permissions/RequireRoles";
 import { InstallPrompt } from '@/core/components/pwa/InstallPrompt';
 import { PWAUpdatePrompt } from '@/core/components/pwa/PWAUpdatePrompt';
 import { StatusBarSpacer } from '@/core/components/StatusBarSpacer';
@@ -128,6 +129,10 @@ function App() {
         <Route path="/json-transfer" element={<JSONDataTransferPage />} />
         <Route path="/peer-transfer" element={<PeerTransferPage />} />
         <Route path="/qr-transfer" element={<QRDataTransferPage />} />
+        <Route path="/pit-assignments" element={<RequireRoles roles={["leadership","mentors"]}><PitAssignmentsPage /></RequireRoles>} />
+        <Route path="/achievements" element={<RequireRoles roles={["unlockLeaderboard"]}><AchievementsPage /></RequireRoles>} />
+        <Route path="/scout-management" element={<RequireRoles roles={["unlockLeaderboard"]}><ScoutManagementDashboardPage /></RequireRoles>} />
+        <Route path="/scouts" element={<ScoutProfilesPage />} />
 
         {/* GAME-SPECIFIC ROUTES: Uncomment and implement these in your game implementation */}
         {/* <Route path="/parse-data" element={<ParseDataPage />} /> */}

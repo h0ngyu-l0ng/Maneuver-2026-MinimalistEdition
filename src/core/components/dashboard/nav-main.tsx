@@ -1,4 +1,4 @@
-import { Binoculars, ChevronRight, Home, type LucideIcon } from "lucide-react"
+import { Binoculars, Home, type LucideIcon } from "lucide-react"
 
 import {
   Collapsible,
@@ -21,6 +21,7 @@ import { useNavigationConfirm } from "@/core/hooks/useNavigationConfirm";
 import { NavigationConfirmDialog } from "@/core/components/NavigationConfirmDialog";
 import { ScoutRole } from "@/core/types/scoutRole";
 import { useScout } from "@/core/contexts/ScoutContext"
+import { hasAccess } from "@/core/components/permissions/HasAccess";
 
 export function NavMain({
   items,
@@ -44,14 +45,8 @@ export function NavMain({
 }) {
 
 
-  const { currentScoutRoles } = useScout()
+  const { currentScoutRoles = [] } = useScout()
 
-  const hasAccess = (requiredRoles?: ScoutRole[]) => {
-    if (!requiredRoles || requiredRoles.length === 0) return true
-    if (!currentScoutRoles) return false
-
-    return requiredRoles.some(role => currentScoutRoles.includes(role))
-  }
 
   const { isMobile, setOpenMobile } = useSidebar();
   const {
@@ -97,14 +92,16 @@ export function NavMain({
     handleConfirm();
   };
 
-  // useEffect(() => {
-  //   if (playerStation) {
-  //     const element = document.getElementById(playerStation.toLowerCase().replace(" ", ""));
-  //     if (element) {
-  //       (element as HTMLInputElement).checked = true;
-  //     }
-  //   }
-  // }, [playerStation]);
+  const visibleItems = items.map(item => {
+    const parentAccess = hasAccess(currentScoutRoles, item.requiredRoles)
+
+    const subAccess = item.items
+      ?.filter(sub => hasAccess(currentScoutRoles, sub.requiredRoles))
+
+    return { ...item, items: subAccess || [] ,visible:parentAccess}
+
+  }).filter(item => item.visible)
+
 
   return (
     <>
@@ -127,47 +124,35 @@ export function NavMain({
           </SidebarMenuItem>
 
           <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton tooltip={"Scout"} onClick={() => proceedClick("/game-start")}>
+            <SidebarMenuButton tooltip={"Match Scout"} onClick={() => proceedClick("/game-start")}>
               <Binoculars />
               <span>Match Scout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton tooltip={"Scout"} onClick={() => proceedClick("/pit-scouting")}>
+            <SidebarMenuButton tooltip={"Pit Scout"} onClick={() => proceedClick("/pit-scouting")}>
               <Binoculars />
               <span>Pit Scout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
 
+          {visibleItems.map(item => (
+            <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltip={item.title}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
 
-          {items
-          .filter(item => hasAccess(item.requiredRoles))
-            .map((item) => (
-
-
-              <Collapsible
-                key={item.title}
-                asChild
-                defaultOpen={item.isActive}
-                className="group/collapsible"
-              >
-
-                <SidebarMenuItem>
-
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-
+                {item.items.length > 0 && (
                   <CollapsibleContent>
-
                     <SidebarMenuSub>
-                      {item.items?.map((subItem) => (
+
+                      {item.items.map(subItem => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
                             <button onClick={() => handleSubItemClick(subItem.url)}>
@@ -176,21 +161,17 @@ export function NavMain({
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
-                    </SidebarMenuSub>
 
+                    </SidebarMenuSub>
                   </CollapsibleContent>
 
-                </SidebarMenuItem>
+                )}
+              </SidebarMenuItem>
+            </Collapsible>
+          ))}
 
-
-              </Collapsible>
-
-
-            ))}
         </SidebarMenu>
       </SidebarGroup>
-
-
 
       <NavigationConfirmDialog
         open={isConfirmDialogOpen}

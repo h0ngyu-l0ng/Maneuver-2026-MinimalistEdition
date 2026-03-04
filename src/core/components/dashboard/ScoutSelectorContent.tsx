@@ -12,6 +12,10 @@ import {
 import { Check, Plus, Trash2 } from "lucide-react"
 import { cn } from "@/core/lib/utils"
 import { AddScoutForm } from "./AddScoutForm"
+import { ScoutRole } from "@/core/types/scoutRole"
+import { useScout } from "@/core/contexts/ScoutContext"
+import { ROLE_LABELS } from "@/core/types/scoutMetaData"
+// import { ScoutMetaData } from "@/core/types/scoutMetaData"
 
 interface ScoutSelectorContentProps {
   currentScout: string
@@ -30,6 +34,7 @@ export function ScoutSelectorContent({
 }: ScoutSelectorContentProps) {
   const [showAddForm, setShowAddForm] = useState(false)
   const [searchValue, setSearchValue] = useState("")
+  const { currentScoutRoles, toggleScoutRoleFor } = useScout()
 
   const getScoutName = (name: string) => {
     return name
@@ -89,6 +94,7 @@ export function ScoutSelectorContent({
             </div>
           </CommandEmpty>
 
+
           <CommandList>
             <CommandGroup>
               {scoutsList.map((scout) => (
@@ -105,13 +111,42 @@ export function ScoutSelectorContent({
                         currentScout === scout ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs bg-muted">
-                          {getScoutName(scout)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {scout}
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs bg-muted">
+                            {getScoutName(scout)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="text-sm">{scout}</div>
+                      </div>
+
+                      <div className="mt-1 flex gap-1">
+                        {(Object.keys(ROLE_LABELS) as ScoutRole[]).map((role) => {
+                          const active = currentScout === scout ? currentScoutRoles?.includes(role) : false
+                          const short = (ROLE_LABELS[role]?.label || role).slice(0, 3).toUpperCase()
+                          return (
+                            <button
+                              key={role}
+                              onClick={async (e) => {
+                                e.stopPropagation()
+                                // Toggle role for this scout
+                                await toggleScoutRoleFor(scout, role)
+                              }}
+                              className={cn(
+                                "text-xs px-2 py-0.5 rounded-md border transition",
+                                active
+                                  ? "bg-primary text-primary-foreground border-transparent"
+                                  : "bg-muted/60 text-muted-foreground border-transparent hover:bg-muted"
+                              )}
+                              aria-pressed={active}
+                              title={ROLE_LABELS[role]?.label || role}
+                            >
+                              {short}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
                   <Button
@@ -129,6 +164,7 @@ export function ScoutSelectorContent({
               ))}
             </CommandGroup>
             
+
             {scoutsList.length > 0 && (
               <CommandGroup>
                 <div 
@@ -145,6 +181,7 @@ export function ScoutSelectorContent({
               </CommandGroup>
             )}
           </CommandList>
+
         </>
       ) : (
         <AddScoutForm 

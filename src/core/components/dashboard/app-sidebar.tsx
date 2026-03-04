@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Settings, SquarePen } from "lucide-react"
+import { Settings, SquarePen, Users } from "lucide-react"
 
 // import { NavDocuments } from "@/core/components/dashboard/nav-documents"
 import { NavMain } from "@/core/components/dashboard/nav-main"
@@ -21,6 +21,11 @@ import { ScoutRole } from "@/core/types/scoutRole"
 
 const data = {
   navMain: [
+    {
+      title: "Manage Scouts",
+      url: "/scouts",
+      icon: Users,
+    },
     // {
     //   title: "Data Actions",
     //   url: "/settings",
