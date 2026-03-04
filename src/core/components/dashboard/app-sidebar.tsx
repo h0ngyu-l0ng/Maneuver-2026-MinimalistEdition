@@ -1,10 +1,11 @@
 import * as React from "react"
-import { Settings, SquarePen, Users } from "lucide-react"
+import { LayoutDashboard, Settings, SquarePen } from "lucide-react"
 
 // import { NavDocuments } from "@/core/components/dashboard/nav-documents"
 import { NavMain } from "@/core/components/dashboard/nav-main"
 // import { NavSecondary } from "@/core/components/dashboard/nav-secondary"
 import { NavUser } from "@/core/components/dashboard/nav-user"
+import { DataAttribution } from "@/core/components/DataAttribution"
 import {
   Sidebar,
   SidebarContent,
@@ -16,12 +17,11 @@ import {
   useSidebar,
 } from "@/core/components/ui/sidebar"
 import { Separator } from "@/core/components/ui/separator"
+import ManeuverHorizontalLogo from "@/assets/Maneuver Wordmark Horizontal.png"
 import { haptics } from "@/core/lib/haptics"
-import { ScoutRole } from "@/core/types/scoutRole"
 
 const data = {
   navMain: [
-
     // {
     //   title: "Data Actions",
     //   url: "/settings",
@@ -37,92 +37,14 @@ const data = {
     //     }
     //   ]
     // },
-
     {
       title: "Data Actions",
       url: "#",
       icon: Settings,
       items: [
-
-        {
-          title: "API Data",
-          url: "/api-data",
-        },
-        {
-          title: "WiFi Transfer (Beta)",
-          url: "/peer-transfer",
-        },
-      ]
-    },
-
-   
-    {
-      title: "Strategy",
-      url: "#",
-      icon: SquarePen,
-      items: [
-        {
-          title: "Match Strategy",
-          url: "/match-strategy",
-        },
-
-        {
-          title: "Overview: Team Performance",
-          url: "/strategy-overview",
-        },
-        {
-          title: "Individual Team Stats",
-          url: "/team-stats",
-        },
-
-        {
-          title: "Scout Data Validation",
-          url: "/match-validation",
-        },
-
-        {
-          title: "Pick Lists",
-          url: "/pick-list",
-        }
-      ],
-    },
-
-     {
-      title: "Scout Management",
-      url: "#",
-      icon: Users,
-      items: [
-        {
-          title: "Match & Pit Assignments",
-          url: "/pit-assignments",
-          requiredRoles: ["leadership", "mentors"] as ScoutRole[],
-        },
-        
-        {
-          title: "Achievements",
-          url: "/achievements",
-          requiredRoles: ["unlockLeaderboard"] as ScoutRole[]
-        },
-
-        {
-          title: "Scout Leaderboard",
-          url: "/scout-management",
-          requiredRoles: ["unlockLeaderboard"] as ScoutRole[]
-        },
-
-      ],
-    },
-
-
-
-    {
-      title: "Archived/Unused Features",
-      url: "#",
-      items: [
         {
           title: "Clear Data",
           url: "/clear-data",
-          requiredRoles: ["leadership", "mentors"] as ScoutRole[]
         },
         {
           title: "JSON Data Transfer",
@@ -132,24 +54,71 @@ const data = {
           title: "QR Data Transfer",
           url: "/qr-transfer",
         },
-
-
-        
-
-        ...(import.meta.env.DEV ? [
-          {
-            title: "Dev Utilities",
-            url: "/dev-utilities",
-            requiredRoles: ["leadership", "mentors"] as ScoutRole[]
-          }] : [])
-
+        {
+          title: "WiFi Transfer (Beta)",
+          url: "/peer-transfer",
+        },
+        {
+          title: "API Data",
+          url: "/api-data",
+        }
+      ]
+    },
+    {
+      title: "Strategy",
+      url: "#",
+      icon: SquarePen,
+      items: [
+        {
+          title: "Strategy Overview",
+          url: "/strategy-overview",
+        },
+        {
+          title: "Match Strategy",
+          url: "/match-strategy",
+        },
+        {
+          title: "Match Validation",
+          url: "/match-validation",
+        },
+        {
+          title: "Team Stats",
+          url: "/team-stats",
+        },
+        {
+          title: "Pit Scouting",
+          url: "/pit-scouting",
+        },
+        {
+          title: "Pick Lists",
+          url: "/pick-list",
+        }
       ],
-
+    },
+    {
+      title: "Scout Management",
+      url: "#",
+      icon: LayoutDashboard,
+      items: [
+        {
+          title: "Scout Dashboard",
+          url: "/scout-management",
+        },
+        {
+          title: "Achievements",
+          url: "/achievements",
+        },
+        {
+          title: "Assign Pit Scouting",
+          url: "/pit-assignments",
+        },
+        ...(import.meta.env.DEV ? [{
+          title: "Dev Utilities",
+          url: "/dev-utilities",
+        }] : [])
+      ],
     },
   ],
-
-
-
   navSecondary: [
     {
       title: "Get Help (WIP)",
@@ -157,7 +126,6 @@ const data = {
       // icon: IconHelp,
     },
   ],
-
   documents: [
     {
       name: "Saved Match Strategies (WIP)",
@@ -255,25 +223,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button] h-fit"
             >
-
+              <img
+                src={ManeuverHorizontalLogo}
+                className="row-span-4 scale-75 dark:invert"
+                width="240"
+                height="160"
+                alt="Maneuver Logo Wordmark Horizontal"
+              />
             </SidebarMenuButton>
             <Separator className="my-1" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-
       <SidebarContent
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         <NavMain items={data.navMain} />
       </SidebarContent>
-
       <SidebarFooter>
+        <div className="px-2 py-1">
+          <DataAttribution sources={['tba', 'nexus']} variant="compact" />
+        </div>
         <NavUser />
       </SidebarFooter>
-
-
     </Sidebar>
   )
 }

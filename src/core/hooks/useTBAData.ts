@@ -37,12 +37,10 @@ export const useTBAData = () => {
         ...(tbaApiKey.trim() ? { "X-Client-Api-Key": tbaApiKey } : {}),
       };
 
-      console.log('useTBAData.fetchMatchDataFromTBA', { event: tbaEventKey, hasKey: !!tbaApiKey.trim(), headers });
       const res = await fetch(
         `/.netlify/functions/api-proxy?provider=tba&endpoint=${encodeURIComponent(`/event/${tbaEventKey}/matches/simple`)}`,
         { headers }
       );
-      console.log('useTBAData.fetchMatchDataFromTBA response status', res.status);
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -55,25 +53,7 @@ export const useTBAData = () => {
       }
 
       const fullData = await res.json();
-      // catch cases where TBA returns a 200 with an error message in the body
-      if (
-        fullData &&
-        typeof fullData === 'object' &&
-        (fullData.error || fullData.Error || fullData.errors || fullData.message)
-      ) {
-        // some endpoints return {"error":"Invalid API key"} or similar packages
-        const errMsg =
-          typeof fullData.error === 'string'
-            ? fullData.error
-            : typeof fullData.Error === 'string'
-            ? fullData.Error
-            : Array.isArray(fullData.errors)
-            ? fullData.errors[0]
-            : typeof fullData.message === 'string'
-            ? fullData.message
-            : JSON.stringify(fullData);
-        throw new Error(`TBA error: ${errMsg}`);
-      }
+
       const qualMatchesCleaned = [];
 
       for (const match of fullData) {
@@ -125,9 +105,8 @@ export const useTBAData = () => {
         sessionStorage.removeItem("tbaApiKey");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      toast.error(`Failed to fetch match data from TBA: ${message}`);
-      console.error('Error fetching match data from TBA:', err);
+      toast.error("Failed to fetch match data from TBA");
+      console.error(err);
     } finally {
       setMatchDataLoading(false);
     }

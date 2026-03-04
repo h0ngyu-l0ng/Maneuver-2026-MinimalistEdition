@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScoutProfileWithSelector } from '../components/game-start/ScoutProfileWithSelector';
+import { ScoutProfileWithSelector } from '../components/GameStartComponents/ScoutProfileWithSelector';
 import { AchievementOverview } from '../components/scout-management/AchievementOverview';
 import { ScoutChartSection } from '../components/scout-management/ScoutChartSection';
 import { ScoutStatsSummary } from '../components/scout-management/ScoutStatsSummary';

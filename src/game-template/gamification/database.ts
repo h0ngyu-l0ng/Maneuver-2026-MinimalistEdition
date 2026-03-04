@@ -6,7 +6,7 @@
  */
 
 import Dexie, { type Table } from 'dexie';
-import type { Scout, MatchPrediction, ScoutAchievement} from './types';
+import type { Scout, MatchPrediction, ScoutAchievement } from './types';
 
 /**
  * Scout profile database - gamification, predictions, achievements
@@ -26,20 +26,9 @@ export class ScoutGamificationDB extends Dexie {
             scoutAchievements: '[scoutName+achievementId], scoutName, achievementId, unlockedAt'
         });
 
-        // // Version 2: Add stakesFromPredictions field
-        // this.version(2).stores({
-        //     scouts: 'name, stakes, stakesFromPredictions, totalPredictions, correctPredictions, currentStreak, longestStreak, lastUpdated',
-        //     predictions: 'id, scoutName, eventKey, matchNumber, predictedWinner, timestamp, verified, [scoutName+eventKey+matchNumber]',
-        //     scoutAchievements: '[scoutName+achievementId], scoutName, achievementId, unlockedAt'
-        // }).upgrade(tx => {
-        //     return tx.table('scouts').toCollection().modify(scout => {
-        //         scout.stakesFromPredictions = scout.stakes || 0;
-        //     });
-        // });
-
         // Version 2: Add stakesFromPredictions field
         this.version(2).stores({
-            scouts: 'name, stakes, role, stakesFromPredictions, totalPredictions, correctPredictions, currentStreak, longestStreak, lastUpdated',
+            scouts: 'name, stakes, stakesFromPredictions, totalPredictions, correctPredictions, currentStreak, longestStreak, lastUpdated',
             predictions: 'id, scoutName, eventKey, matchNumber, predictedWinner, timestamp, verified, [scoutName+eventKey+matchNumber]',
             scoutAchievements: '[scoutName+achievementId], scoutName, achievementId, unlockedAt'
         }).upgrade(tx => {
@@ -47,7 +36,6 @@ export class ScoutGamificationDB extends Dexie {
                 scout.stakesFromPredictions = scout.stakes || 0;
             });
         });
-
     }
 }
 
@@ -78,7 +66,6 @@ export const getOrCreateScout = async (name: string): Promise<Scout> => {
     const newScout: Scout = {
         name: name.trim(),
         stakes: 0,
-        scoutRoles: [],
         stakesFromPredictions: 0,
         totalPredictions: 0,
         correctPredictions: 0,

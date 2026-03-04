@@ -40,7 +40,6 @@ import MatchStrategyPage from "@/core/pages/MatchStrategyPage";
 import PickListPage from "@/core/pages/PickListPage";
 // import PitScoutingPage from "@/pages/PitScoutingPage";
 import ScoutManagementDashboardPage from "@/core/pages/ScoutManagementDashboardPage";
-import ScoutProfilesPage from "@/core/pages/ScoutProfilesPage";
 import AchievementsPage from "@/core/pages/AchievementsPage";
 import DevUtilitiesPage from "@/core/pages/DevUtilitiesPage";
 import { MatchValidationPage } from "@/core/pages/MatchValidationPage";
@@ -64,6 +63,11 @@ import {
   GameSpecificQuestions,
   GameSpecificScoutOptions,
 } from "@/game-template/components";
+import logo from "../src/assets/Maneuver Wordmark Vertical.png";
+import { generateDemoEvent, generateDemoEventScheduleOnly } from "@/core/lib/demoDataGenerator";
+import { generate2026GameData } from "@/game-template/demoDataGenerator2026";
+import { db, pitDB, gameDB } from "@/db";
+import { clearEventCache, clearEventValidationResults, getCachedTBAEventMatches } from "@/core/lib/tbaCache";
 
 // Mock implementations for missing template parts
 const mockConfig = { year: 2026, gameName: "REBUILT", scoring: { auto: {}, teleop: {}, endgame: {} } };
@@ -71,10 +75,95 @@ const mockValidation = { getDataCategories: () => [], calculateAllianceStats: ()
 const mockUI = { GameStartScreen: () => null, AutoScoringScreen: () => null, TeleopScoringScreen: () => null };
 
 // Demo data handlers
+const DEMO_EVENT_KEY = 'demo2026';
 
+const loadDemoData = async () => {
+  console.log('🎲 Loading demo data...');
+  
+  // Generate comprehensive demo data
+  await generateDemoEvent({
+    eventKey: DEMO_EVENT_KEY,
+    clearExisting: true,
+    gameDataGenerator: generate2026GameData,
+    includePlayoffs: true,
+    seedFakeValidationResults: false,
+  });
+  
+  // Update local storage for demo event
+  localStorage.setItem('eventName', DEMO_EVENT_KEY);
+  
+  const eventsList = JSON.parse(localStorage.getItem('eventsList') || '[]');
+  if (!eventsList.includes(DEMO_EVENT_KEY)) {
+    eventsList.push(DEMO_EVENT_KEY);
+    localStorage.setItem('eventsList', JSON.stringify(eventsList));
+  }
+  
+  // Update scouts list
+  const scouts = await gameDB.scouts.toArray();
+  const scoutNames = scouts.map(s => s.name).sort();
+  localStorage.setItem('scoutsList', JSON.stringify(scoutNames));
+  
+  console.log('✅ Demo data loaded successfully!');
+};
 
+const loadDemoScheduleOnly = async () => {
+  console.log('🗓️ Loading demo schedule only...');
 
+  await generateDemoEventScheduleOnly({
+    eventKey: DEMO_EVENT_KEY,
+    clearExisting: true,
+  });
 
+  localStorage.setItem('eventName', DEMO_EVENT_KEY);
+
+  const eventsList = JSON.parse(localStorage.getItem('eventsList') || '[]');
+  if (!eventsList.includes(DEMO_EVENT_KEY)) {
+    eventsList.push(DEMO_EVENT_KEY);
+    localStorage.setItem('eventsList', JSON.stringify(eventsList));
+  }
+
+  console.log('✅ Demo schedule loaded successfully!');
+};
+
+const clearDemoData = async () => {
+  console.log('🗑️ Clearing demo data...');
+  
+  // Clear all demo data from databases
+  await db.scoutingData.where('eventKey').equals(DEMO_EVENT_KEY).delete();
+  await pitDB.pitScoutingData.where('eventKey').equals(DEMO_EVENT_KEY).delete();
+  await gameDB.scouts.clear();
+  await gameDB.predictions.where('eventKey').equals(DEMO_EVENT_KEY).delete();
+  await gameDB.scoutAchievements.clear();
+  await clearEventCache(DEMO_EVENT_KEY);
+  await clearEventValidationResults(DEMO_EVENT_KEY);
+  
+  // Clear from local storage
+  const eventsList = JSON.parse(localStorage.getItem('eventsList') || '[]');
+  const filtered = eventsList.filter((e: string) => e !== DEMO_EVENT_KEY);
+  localStorage.setItem('eventsList', JSON.stringify(filtered));
+  
+  if (localStorage.getItem('eventName') === DEMO_EVENT_KEY) {
+    localStorage.removeItem('eventName');
+  }
+
+  if (localStorage.getItem('eventKey') === DEMO_EVENT_KEY) {
+    localStorage.removeItem('eventKey');
+  }
+
+  const customEvents = JSON.parse(localStorage.getItem('customEventsList') || '[]');
+  const filteredCustomEvents = customEvents.filter((e: string) => e !== DEMO_EVENT_KEY);
+  localStorage.setItem('customEventsList', JSON.stringify(filteredCustomEvents));
+
+  localStorage.removeItem('matchData');
+  
+  console.log('✅ Demo data cleared successfully!');
+};
+
+const checkDemoData = async (): Promise<boolean> => {
+  const entryCount = await db.scoutingData.where('eventKey').equals(DEMO_EVENT_KEY).count();
+  const cachedMatches = await getCachedTBAEventMatches(DEMO_EVENT_KEY);
+  return entryCount > 0 || cachedMatches.length > 0;
+};
 
 function App() {
   const router = createBrowserRouter(
@@ -102,7 +191,17 @@ function App() {
         <Route 
           index 
           element={
-            <HomePage
+            <HomePage 
+              logo={logo} 
+              appName="Maneuver 2026"
+              version="2026.1.0"
+              onLoadDemoData={loadDemoData}
+              onLoadDemoScheduleOnly={loadDemoScheduleOnly}
+              onClearData={clearDemoData}
+              checkExistingData={checkDemoData}
+              demoDataDescription="Load sample data for 30 teams, 60 matches, 8 scouts with predictions, and pit scouting to explore all features"
+              demoDataStats="Demo data loaded! 30 teams, 60 matches, 8 scouts"
+              demoScheduleStats="Demo schedule loaded! 30 teams, 60 matches"
             />
           } 
         />
@@ -117,10 +216,6 @@ function App() {
         <Route path="/json-transfer" element={<JSONDataTransferPage />} />
         <Route path="/peer-transfer" element={<PeerTransferPage />} />
         <Route path="/qr-transfer" element={<QRDataTransferPage />} />
-        <Route path="/pit-assignments" element={<PitAssignmentsPage />} />
-        <Route path="/achievements" element={<AchievementsPage />} />
-        <Route path="/scout-management" element={<ScoutManagementDashboardPage />} />
-        <Route path="/scouts-profile" element={<ScoutProfilesPage />} />
 
         {/* GAME-SPECIFIC ROUTES: Uncomment and implement these in your game implementation */}
         {/* <Route path="/parse-data" element={<ParseDataPage />} /> */}
@@ -137,7 +232,6 @@ function App() {
         <Route path="/pick-list" element={<PickListPage />} />
         {/* <Route path="/pit-scouting" element={<PitScoutingPage />} />  */}
         <Route path="/scout-management" element={<ScoutManagementDashboardPage />} />
-        
         <Route path="/pit-assignments" element={<PitAssignmentsPage />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/match-validation" element={<MatchValidationPage />} />

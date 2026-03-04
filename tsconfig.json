@@ -15,7 +15,6 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "rootDir": "./src",
     "outDir": "./dist",
     "removeComments": false,
     "importHelpers": true,
@@ -36,7 +35,6 @@
     "skipLibCheck": true,
 
     /* Path Mapping */
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],

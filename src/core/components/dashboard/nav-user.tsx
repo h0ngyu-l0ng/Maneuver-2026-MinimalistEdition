@@ -28,10 +28,10 @@ export function NavUser() {
   const {
     currentScout,
     currentScoutStakes,
-    currentScoutRoles,
     scoutsList,
     addScout,
-    removeScout  } = useScout()
+    removeScout
+  } = useScout()
 
   const handleClose = () => setOpen(false)
 
@@ -49,7 +49,6 @@ export function NavUser() {
               <ScoutDisplay 
                 currentScout={currentScout}
                 currentScoutStakes={currentScoutStakes}
-                currentScoutRoles={currentScoutRoles}
               />
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -81,13 +80,12 @@ export function NavUser() {
                 <ScoutDisplay 
                   currentScout={currentScout}
                   currentScoutStakes={currentScoutStakes}
-                  currentScoutRoles={currentScoutRoles}
                 />
                 <ChevronsUpDown className="ml-auto size-4" />
               </SidebarMenuButton>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-[500px] p-0" 
+              className="w-[300px] p-0" 
               side="right"
               align="start"
             >

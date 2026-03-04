@@ -57,14 +57,6 @@ The navigation automatically adjusts, and whichever page is last in the enabled 
 
 **Purpose:** Collect match context before scouting begins.
 
-_The page is intentionally split into reusable sub‑components for easier maintenance and game-specific overrides. Key pieces include:_
-
-- `EventNameSelector` – chooses event key
-- `GameStartSelectTeam` – handles team drop‑down, auto‑fill, and assignment-slot hints
-- `ScoutOptionsSheet` – side sheet with scout-specific toggles
-
-Teams building their own game implementation can replace or extend any of these components by shadowing the paths under `src/game-template/components/game-start`. This mirrors the modular approach used elsewhere (e.g. pit assignments).
-
 **Fields:**
 | Field | Description | Source |
 |-------|-------------|--------|

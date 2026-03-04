@@ -6,7 +6,6 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useScout } from '@/core/contexts/ScoutContext';
 import { useWebRTC } from '@/core/contexts/WebRTCContext';
 import { useWebRTCQRTransfer } from '@/core/hooks/useWebRTCQRTransfer';
 import { type ConflictInfo } from '@/core/lib/scoutingDataUtils';
@@ -64,8 +63,7 @@ const PeerTransferPage = () => {
         isProcessing
     } = useConflictResolution();
 
-    const { playerStation } = useScout();
-    const myRole = playerStation || 'unknown';
+    const myRole = localStorage.getItem("playerStation") || 'unknown';
 
     const {
         connectedScouts,
