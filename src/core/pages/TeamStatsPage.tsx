@@ -75,7 +75,6 @@ interface TeamStatsPageProps {
 
 import { StatOverview } from "@/game-template/components/team-stats/StatOverview";
 import { ScoringAnalysis } from "@/game-template/components/team-stats/ScoringAnalysis";
-import { AutoAnalysis } from "@/game-template/components/team-stats/AutoAnalysis";
 import { PerformanceAnalysis } from "@/game-template/components/team-stats/PerformanceAnalysis";
 import PitDataDisplay from "@/game-template/components/team-stats/PitDataDisplay";
 
@@ -93,7 +92,7 @@ export function TeamStatsPage(props: TeamStatsPageProps) {
     const statSections = props.statSections ?? displayConfig.statSections;
     const rateSections = props.rateSections ?? displayConfig.rateSections;
     const matchBadges = props.matchBadges ?? displayConfig.matchBadges;
-    const startPositionConfig = props.startPositionConfig ?? displayConfig.startPositionConfig;
+    //const startPositionConfig = props.startPositionConfig ?? displayConfig.startPositionConfig;
     const calculateStats = props.calculateStats ?? hookCalculate;
     const PitDataComponent = props.PitDataComponent ?? PitDataDisplay;
 
@@ -472,10 +471,10 @@ export function TeamStatsPage(props: TeamStatsPageProps) {
                                     <span className="hidden sm:inline">Scoring</span>
                                     <span className="sm:hidden">Score</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="auto" className="text-xs sm:text-sm px-1 sm:px-3">
+                                {/* <TabsTrigger value="auto" className="text-xs sm:text-sm px-1 sm:px-3">
                                     <span className="hidden sm:inline">Auto Start</span>
                                     <span className="sm:hidden">Auto</span>
-                                </TabsTrigger>
+                                </TabsTrigger> */}
                                 <TabsTrigger value="performance" className="text-xs sm:text-sm px-1 sm:px-3">
                                     <span className="hidden sm:inline">Performance</span>
                                     <span className="sm:hidden">Perf.</span>
@@ -507,13 +506,13 @@ export function TeamStatsPage(props: TeamStatsPageProps) {
                             </TabsContent>
 
                             {/* Auto Start Tab */}
-                            <TabsContent value="auto">
+                            {/* <TabsContent value="auto">
                                 <AutoAnalysis
                                     teamStats={teamStats}
                                     compareStats={compareStats}
                                     startPositionConfig={startPositionConfig}
                                 />
-                            </TabsContent>
+                            </TabsContent> */}
 
                             {/* Performance Tab */}
                             <TabsContent value="performance">

@@ -51,19 +51,23 @@ const HomePage = ({
   const canManage = hasAccess(currentScoutRoles, ["leadership", "mentors"] as ScoutRole[]);
 
   return (
-    <main className="relative h-screen w-full">
+    <main className="relative min-h-screen w-full">
 
 <>
-      <div className={cn("flex flex-col h-screen w-full justify-center items-center gap-6 2xl:pb-6",
+      <div className={cn("flex flex-col min-h-screen w-full justify-center items-center gap-6 2xl:pb-6",
         "bg-size-[40px_40px]",
         "bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)]",
           "dark:bg-[linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]"
       )}>
         <h1 className="text-4xl font-bold">{appName}</h1>
-        <h2 className="text-2xl font-semibold">Get Started</h2>
+        
         <h2>
-          1. Select or create a scout profile, or
-          select/manage scouts using the sidebar.
+          Huge thanks to (<a href="https://github.com/ShinyShips/maneuver-core" target="_blank" rel="noopener noreferrer">FRC Team 3314 Alumni and Strategy Mentor</a>) for
+           developing this web app!</h2>
+           <h2 className="text-2xl font-semibold">Get Started</h2>
+           <h2>
+          1. Create a scout profile and then select your role <br/>
+            2. Load match data from API Data
         </h2>
         <div/>
 
