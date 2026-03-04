@@ -43,7 +43,7 @@ export const workflowConfig: WorkflowConfig = {
         autoScoring: true,    // Auto period scoring (required)
         teleopScoring: true,  // Teleop period scoring (required)
         endgame: true,        // Endgame page with status toggles & submit
-        showAutoStatus: true,    // Show robot status on Auto (set false to hide)
+        showAutoStatus: false,    // Show robot status on Auto (set false to hide)
         showTeleopStatus: false,  // Show robot status on Teleop
         showEndgameStatus: true, // Show robot status on Endgame
     },

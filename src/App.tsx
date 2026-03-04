@@ -45,6 +45,7 @@ import AchievementsPage from "@/core/pages/AchievementsPage";
 import DevUtilitiesPage from "@/core/pages/DevUtilitiesPage";
 import { MatchValidationPage } from "@/core/pages/MatchValidationPage";
 import PitAssignmentsPage from "@/core/pages/PitAssignmentsPage";
+import CommentScoutMatchPage from "@/core/pages/CommentScoutMatchPage";
 import { InstallPrompt } from '@/core/components/pwa/InstallPrompt';
 import { PWAUpdatePrompt } from '@/core/components/pwa/PWAUpdatePrompt';
 import { StatusBarSpacer } from '@/core/components/StatusBarSpacer';
@@ -106,6 +107,7 @@ function App() {
             />
           } 
         />
+        
         <Route path="/game-start" element={<GameStartPage />} />
         <Route path="/auto-start" element={<AutoStartPage />} />
         <Route path="/auto-scoring" element={<AutoScoringPage />} />
@@ -118,6 +120,7 @@ function App() {
         <Route path="/peer-transfer" element={<PeerTransferPage />} />
         <Route path="/qr-transfer" element={<QRDataTransferPage />} />
         <Route path="/pit-assignments" element={<PitAssignmentsPage />} />
+        <Route path="/comment-scout-match" element={<CommentScoutMatchPage />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/scout-management" element={<ScoutManagementDashboardPage />} />
         <Route path="/scouts-profile" element={<ScoutProfilesPage />} />

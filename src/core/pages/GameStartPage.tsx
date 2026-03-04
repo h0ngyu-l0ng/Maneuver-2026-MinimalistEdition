@@ -326,7 +326,7 @@ const GameStartPage = () => {
     const inputs = {
       matchNumber,
       alliance,
-      selectTeam,
+      selectTeam: isCommentScouter ? "comment" : selectTeam,
       scoutName: currentScout,
       eventKey,
     };
@@ -364,8 +364,9 @@ const GameStartPage = () => {
     }
 
     // Save inputs to localStorage (similar to ProceedBackButton logic)
+    const selectedTeamForFlow = isCommentScouter ? "comment" : selectTeam;
     localStorage.setItem("matchNumber", matchNumber);
-    localStorage.setItem("selectTeam", selectTeam);
+    localStorage.setItem("selectTeam", selectedTeamForFlow);
     localStorage.setItem("alliance", alliance);
     localStorage.setItem(SCOUT_OPTIONS_STORAGE_KEY, JSON.stringify(scoutOptions));
 
@@ -373,7 +374,7 @@ const GameStartPage = () => {
       eventKey,
       matchType,
       matchNumber,
-      selectTeam,
+      selectedTeamForFlow,
     );
     sessionStorage.removeItem(autoSwitchOnceStorageKey);
 
@@ -388,7 +389,7 @@ const GameStartPage = () => {
           matchType,
           alliance,
           scoutName: currentScout,
-          selectTeam,
+          selectTeam: selectedTeamForFlow,
           eventKey,
           scoutOptions,
         },
@@ -661,19 +662,21 @@ const GameStartPage = () => {
             </div>
 
             {/* Team Selection */}
-            <div className="space-y-2">
-              <Label>Team Selection</Label>
-              <div className={isRescoutMode ? "opacity-50 pointer-events-none" : ""}>
-                <GameStartSelectTeam
-                  defaultSelectTeam={selectTeam}
-                  setSelectTeam={setSelectTeam}
-                  selectedMatch={debouncedMatchNumber}
-                  selectedAlliance={alliance}
-                  selectedEventKey={eventKey}
-                  preferredTeamPosition={stationInfo.teamPosition}
-                />
+            {!isCommentScouter && (
+              <div className="space-y-2">
+                <Label>Team Selection</Label>
+                <div className={isRescoutMode ? "opacity-50 pointer-events-none" : ""}>
+                  <GameStartSelectTeam
+                    defaultSelectTeam={selectTeam}
+                    setSelectTeam={setSelectTeam}
+                    selectedMatch={debouncedMatchNumber}
+                    selectedAlliance={alliance}
+                    selectedEventKey={eventKey}
+                    preferredTeamPosition={stationInfo.teamPosition}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -692,7 +695,7 @@ const GameStartPage = () => {
             disabled={
               isRescoutMode
                 ? false  // In re-scout mode, fields are pre-filled so always allow
-                : (!matchNumber || !alliance || !selectTeam || !currentScout || !eventKey)
+                : (!matchNumber || !alliance || (!isCommentScouter && !selectTeam) || !currentScout || !eventKey)
             }
           >
             Start Scouting
@@ -700,7 +703,7 @@ const GameStartPage = () => {
         </div>
 
         {/* Status Indicator */}
-        {matchNumber && alliance && selectTeam && currentScout && eventKey && (
+        {matchNumber && alliance && (isCommentScouter || selectTeam) && currentScout && eventKey && (
           <Card className="w-full border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
             <CardContent>
               <div className="flex items-center gap-2">
@@ -708,7 +711,7 @@ const GameStartPage = () => {
                 <span className="text-sm text-green-700 dark:text-green-300">
                   {eventKey} • Match {matchNumber} •{" "}
                   {alliance.charAt(0).toUpperCase() + alliance.slice(1)} Alliance
-                  • Team {selectTeam} • {currentScout}
+                  • Team {isCommentScouter ? "Alliance 3-team" : selectTeam} • {currentScout}
                 </span>
               </div>
             </CardContent>
