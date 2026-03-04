@@ -3,10 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
-import { Input } from "@/core/components/ui/input";
-import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
-import { ScoringSections, StatusToggles } from "@/game-template/components";
+import { StatusToggles } from "@/game-template/components";
 import { FIELD_ELEMENTS } from "@/game-template/components/field-map";
 import { formatDurationSecondsLabel } from "@/game-template/duration";
 import { TELEOP_PHASE_DURATION_MS } from "@/game-template/constants";
@@ -14,6 +12,7 @@ import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
 import { submitMatchData } from "@/core/lib/submitMatch";
 import { useGame } from "@/core/contexts/GameContext";
 import { workflowConfig } from "@/game-template/game-schema";
+import BallsShotCounter from "@/core/components/scouting/BallsShotCounter";
 
 const TELEOP_CLIMB_START_PRESETS = [30, 25, 20, 15, 10, 5] as const;
 
@@ -45,6 +44,9 @@ const TeleopScoringPage = () => {
   const [scoringActions, setScoringActions] = useState(getSavedState());
   const [robotStatus, setRobotStatus] = useState(getSavedStatus());
   const [undoHistory, setUndoHistory] = useState(getSavedHistory());
+  const ballsShotCount = typeof robotStatus?.ballsShotCount === 'number'
+    ? Math.max(0, robotStatus.ballsShotCount)
+    : 0;
   const teleopClimbStartTimeSecRemaining = typeof robotStatus?.teleopClimbStartTimeSecRemaining === 'number'
     ? robotStatus.teleopClimbStartTimeSecRemaining
     : null;
@@ -64,12 +66,12 @@ const TeleopScoringPage = () => {
     localStorage.setItem("teleopUndoHistory", JSON.stringify(undoHistory));
   }, [undoHistory]);
 
-  const addScoringAction = (action: any) => {
-    const newAction = { ...action, timestamp: Date.now() };
-    setScoringActions((prev: any) => [...prev, newAction]);
-    // Add to undo history
-    setUndoHistory((prev: any) => [...prev, { type: 'action', data: newAction }]);
-  };
+  // const addScoringAction = (action: any) => {
+  //   const newAction = { ...action, timestamp: Date.now() };
+  //   setScoringActions((prev: any) => [...prev, newAction]);
+  //   // Add to undo history
+  //   setUndoHistory((prev: any) => [...prev, { type: 'action', data: newAction }]);
+  // };
 
   const updateRobotStatus = (updates: Partial<any>) => {
     // Save current state to undo history BEFORE updating
@@ -78,25 +80,25 @@ const TeleopScoringPage = () => {
     setRobotStatus((prev: any) => ({ ...prev, ...updates }));
   };
 
-  const undoLastAction = () => {
-    if (undoHistory.length === 0) {
-      toast.error("No changes to undo");
-      return;
-    }
+  // const undoLastAction = () => {
+  //   if (undoHistory.length === 0) {
+  //     toast.error("No changes to undo");
+  //     return;
+  //   }
 
-    const lastChange = undoHistory[undoHistory.length - 1];
+  //   const lastChange = undoHistory[undoHistory.length - 1];
 
-    if (lastChange.type === 'action') {
-      // Undo scoring action
-      setScoringActions((prev: any) => prev.slice(0, -1));
-    } else if (lastChange.type === 'status') {
-      // Restore previous status
-      setRobotStatus(lastChange.data);
-    }
+  //   if (lastChange.type === 'action') {
+  //     // Undo scoring action
+  //     setScoringActions((prev: any) => prev.slice(0, -1));
+  //   } else if (lastChange.type === 'status') {
+  //     // Restore previous status
+  //     setRobotStatus(lastChange.data);
+  //   }
 
-    // Remove from undo history
-    setUndoHistory((prev: any) => prev.slice(0, -1));
-  };
+  //   // Remove from undo history
+  //   setUndoHistory((prev: any) => prev.slice(0, -1));
+  // };
 
   const handleBack = () => {
     const prevRoute = getPrevRoute('teleopScoring') || '/auto-scoring';
@@ -110,25 +112,25 @@ const TeleopScoringPage = () => {
     });
   };
 
-  const handleTeleopClimbStartPreset = (seconds: number) => {
-    updateRobotStatus({
-      teleopClimbStartTimeSecRemaining:
-        teleopClimbStartTimeSecRemaining === seconds ? null : seconds,
-    });
-  };
+  // const handleTeleopClimbStartPreset = (seconds: number) => {
+  //   updateRobotStatus({
+  //     teleopClimbStartTimeSecRemaining:
+  //       teleopClimbStartTimeSecRemaining === seconds ? null : seconds,
+  //   });
+  // };
 
-  const handleTeleopClimbStartInput = (rawValue: string) => {
-    if (rawValue === '') {
-      updateRobotStatus({ teleopClimbStartTimeSecRemaining: null });
-      return;
-    }
+  // const handleTeleopClimbStartInput = (rawValue: string) => {
+  //   if (rawValue === '') {
+  //     updateRobotStatus({ teleopClimbStartTimeSecRemaining: null });
+  //     return;
+  //   }
 
-    const parsed = Number.parseInt(rawValue, 10);
-    if (Number.isNaN(parsed)) return;
+  //   const parsed = Number.parseInt(rawValue, 10);
+  //   if (Number.isNaN(parsed)) return;
 
-    const clamped = Math.max(0, Math.min(135, parsed));
-    updateRobotStatus({ teleopClimbStartTimeSecRemaining: clamped });
-  };
+  //   const clamped = Math.max(0, Math.min(135, parsed));
+  //   updateRobotStatus({ teleopClimbStartTimeSecRemaining: clamped });
+  // };
 
   const handleProceed = async (finalActions?: any[]) => {
     let actionsToUse = Array.isArray(finalActions) ? finalActions : scoringActions;
@@ -221,7 +223,7 @@ const TeleopScoringPage = () => {
         <div className="w-full lg:flex-1 space-y-4 min-h-0 overflow-y-auto">
 
           {/* Game-Specific Scoring Sections */}
-          <ScoringSections
+          {/* <ScoringSections
             phase="teleop"
             onAddAction={addScoringAction}
             actions={scoringActions}
@@ -232,7 +234,7 @@ const TeleopScoringPage = () => {
             teamNumber={states?.inputs?.selectTeam}
             onBack={handleBack}
             onProceed={handleProceed}
-          />
+          /> */}
 
           {/* Action Buttons - Mobile Only */}
           <div className="flex lg:hidden gap-4 w-full">
@@ -330,7 +332,7 @@ const TeleopScoringPage = () => {
             </Card>
           )}
 
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-lg">Teleop Climb Start Time</CardTitle>
             </CardHeader>
@@ -364,17 +366,29 @@ const TeleopScoringPage = () => {
                 />
               </div>
             </CardContent>
+          </Card> */}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Balls Shot</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BallsShotCounter
+                count={ballsShotCount}
+                onChange={(nextCount) => updateRobotStatus({ ballsShotCount: nextCount })}
+              />
+            </CardContent>
           </Card>
 
           {/* Undo Button */}
-          <Button
+          {/* <Button
             variant="outline"
             onClick={undoLastAction}
             disabled={undoHistory.length === 0}
             className="w-full"
           >
             Undo Last Change
-          </Button>
+          </Button> */}
 
           {/* Action Buttons - Desktop Only */}
           <div className="hidden lg:flex gap-4 w-full">

@@ -12,6 +12,7 @@ import { AUTO_PHASE_DURATION_MS } from "@/game-template/constants";
 import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
 import { submitMatchData } from "@/core/lib/submitMatch";
 import { useGame } from "@/core/contexts/GameContext";
+import BallsShotCounter from "@/core/components/scouting/BallsShotCounter";
 
 
 const AutoScoringPage = () => {
@@ -42,6 +43,9 @@ const AutoScoringPage = () => {
   const [scoringActions, setScoringActions] = useState(getSavedState());
   const [robotStatus, setRobotStatus] = useState(getSavedStatus());
   const [undoHistory, setUndoHistory] = useState(getSavedHistory());
+  const ballsShotCount = typeof robotStatus?.ballsShotCount === 'number'
+    ? Math.max(0, robotStatus.ballsShotCount)
+    : 0;
 
   // Save state to localStorage whenever actions change
   useEffect(() => {
@@ -63,6 +67,11 @@ const AutoScoringPage = () => {
     setScoringActions((prev: any) => [...prev, newAction]);
     // Add to undo history
     setUndoHistory((prev: any) => [...prev, { type: 'action', data: newAction }]);
+  };
+
+  const updateRobotStatus = (updates: Partial<any>) => {
+    setUndoHistory((history: any) => [...history, { type: 'status', data: robotStatus }]);
+    setRobotStatus((prev: any) => ({ ...prev, ...updates }));
   };
 
 
@@ -196,7 +205,7 @@ const AutoScoringPage = () => {
         <div className="w-full lg:flex-1 space-y-4 min-h-0 overflow-y-auto">
 
           {/* Game-Specific Scoring Sections */}
-          <ScoringSections
+          {/* <ScoringSections
             phase="auto"
             onAddAction={addScoringAction}
             actions={scoringActions}
@@ -208,7 +217,7 @@ const AutoScoringPage = () => {
             teamNumber={states?.inputs?.selectTeam}
             onBack={handleBack}
             onProceed={handleProceed}
-          />
+          /> */}
 
           {/* Action Buttons - Mobile Only */}
           <div className="flex lg:hidden gap-4 w-full">
@@ -344,6 +353,19 @@ const AutoScoringPage = () => {
                 </div>
               </CardContent>
             </Card> */}
+
+            {/* Undo Button */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Balls Shot</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BallsShotCounter
+                  count={ballsShotCount}
+                  onChange={(nextCount) => updateRobotStatus({ ballsShotCount: nextCount })}
+                />
+              </CardContent>
+            </Card>
 
             {/* Undo Button */}
             <Button
