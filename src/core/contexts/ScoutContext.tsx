@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { getOrCreateScoutByName, getScout } from '@/core/lib/scoutGamificationUtils';
+import { ScoutRole } from '@/core/types/scoutRole';
 
 interface ScoutContextType {
   currentScout: string;
@@ -7,11 +8,17 @@ interface ScoutContextType {
   scoutsList: string[];
   playerStation: string;
   isLoading: boolean;
+
+  currentScoutRoles: ScoutRole[];
+
   setCurrentScout: (name: string) => Promise<void>;
   setPlayerStation: (station: string) => void;
   addScout: (name: string) => Promise<void>;
   removeScout: (name: string) => Promise<void>;
   refreshScout: () => Promise<void>;
+
+  updateScoutRoles: (role: ScoutRole[]) => void;
+  toggleScoutRole: (role: ScoutRole) => void;
 }
 
 const ScoutContext = createContext<ScoutContextType | undefined>(undefined);
@@ -34,7 +41,8 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
   const [scoutsList, setScoutsList] = useState<string[]>([]);
   const [playerStation, setPlayerStationState] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-
+  const [currentScoutRoles, setCurrentScoutRoles] = useState<ScoutRole[]>([]);
+  
   // Load initial data from localStorage
   const loadScouts = useCallback(async () => {
     try {
@@ -83,6 +91,8 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
       // Update state
       setCurrentScoutState(trimmedName);
       setCurrentScoutStakes(scout.stakes);
+
+      setCurrentScoutRoles(scout.scoutRoles || []);
       
       // Update localStorage
       localStorage.setItem('currentScout', trimmedName);
@@ -166,6 +176,26 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
     }
   }, [currentScout]);
 
+  const updateScoutRoles = useCallback((roles: ScoutRole[]) => {
+    setCurrentScoutRoles(roles);
+    localStorage.setItem('currentScoutRoles', JSON.stringify(roles));
+  }, []);
+
+  const toggleScoutRole = useCallback((role: ScoutRole) => {
+    setCurrentScoutRoles(prevRoles => {
+
+      let updatedRoles: ScoutRole[];
+        if (prevRoles.includes(role)) {
+          updatedRoles = prevRoles.filter(r => r !== role);
+        } else {
+          updatedRoles = [...prevRoles, role];
+        }
+      localStorage.setItem('currentScoutRoles', JSON.stringify(updatedRoles));
+      return updatedRoles;
+    }
+  );
+  }, []);
+
   // Load scouts on mount
   useEffect(() => {
     loadScouts();
@@ -207,11 +237,18 @@ export const ScoutProvider: React.FC<ScoutProviderProps> = ({ children }) => {
     scoutsList,
     playerStation,
     isLoading,
+    
+    currentScoutRoles,
+    
     setCurrentScout,
     setPlayerStation,
     addScout,
     removeScout,
     refreshScout,
+
+    updateScoutRoles,
+    toggleScoutRole,
+
   };
 
   return <ScoutContext.Provider value={value}>{children}</ScoutContext.Provider>;

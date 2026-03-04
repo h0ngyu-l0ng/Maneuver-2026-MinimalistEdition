@@ -28,9 +28,11 @@ export function NavUser() {
   const {
     currentScout,
     currentScoutStakes,
+    currentScoutRoles,
     scoutsList,
     addScout,
-    removeScout
+    removeScout,
+    updateScoutRoles
   } = useScout()
 
   const handleClose = () => setOpen(false)

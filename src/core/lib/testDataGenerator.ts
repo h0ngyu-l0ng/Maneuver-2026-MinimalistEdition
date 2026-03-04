@@ -167,7 +167,8 @@ export const generateRandomScouts = async () => {
             currentStreak: randomInt(0, 5),
             longestStreak: randomInt(5, 12),
             createdAt: Date.now() - (1000 * 60 * 60 * 24 * 30),
-            lastUpdated: Date.now()
+            lastUpdated: Date.now(),
+            scoutRoles: [],
         };
 
         await gamificationDB.scouts.put(scout);

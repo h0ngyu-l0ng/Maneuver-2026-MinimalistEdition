@@ -1,239 +1,97 @@
 import { cn } from "@/core/lib/utils";
-import { Button } from "@/core/components/ui/button";
-import { Card, CardContent } from "@/core/components/ui/card";
-import { DataAttribution } from "@/core/components/DataAttribution";
-import { useState, useEffect } from "react";
-import { analytics } from '@/core/lib/analytics';
-import { haptics } from '@/core/lib/haptics';
+import { useScout } from "@/core/contexts/ScoutContext";
+import { SCOUT_ROLES } from "@/core/types/scoutRole";
+import { Button, Card, CardContent } from "@/components";
 
 /**
  * HomePage Props
  * Game implementations can provide their own logo, version, and demo data handlers
  */
 interface HomePageProps {
-  logo?: string;
+  // logo?: string;
   appName?: string;
-  version?: string;
-  onLoadDemoData?: () => Promise<void>;
-  onLoadDemoScheduleOnly?: () => Promise<void>;
-  onClearData?: () => Promise<void>;
-  checkExistingData?: () => Promise<boolean>;
-  demoDataDescription?: string;
-  demoDataStats?: string;
-  demoScheduleStats?: string;
+  roleDescription?: string;
+  // checkExistingData?: () => Promise<boolean>;
+  // demoDataDescription?: string;
+  // demoDataStats?: string;
+  // demoScheduleStats?: string;
 }
 
 
 const HomePage = ({
-  logo,
-  appName = "Maneuver",
-  version = "2026.1.0",
-  onLoadDemoData,
-  onLoadDemoScheduleOnly,
-  onClearData,
-  checkExistingData,
-  demoDataDescription = "Load sample scouting data to explore the app's features",
-  demoDataStats = "Demo data loaded successfully!",
-  demoScheduleStats = "Demo schedule loaded successfully!"
+  appName = "Scout 2026 Rebuilt",
+  roleDescription = "Select your assigned roles (ie. comment scouter, data scouter)",
 }: HomePageProps = {}) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [loadedType, setLoadedType] = useState<'demo' | 'schedule'>('demo');
-  const [loadingType, setLoadingType] = useState<'demo' | 'schedule' | null>(null);
-
-  useEffect(() => {
-    const checkData = async () => {
-      if (checkExistingData) {
-        try {
-          const hasData = await checkExistingData();
-          setIsLoaded(hasData);
-        } catch (error) {
-          console.error("Error checking existing data:", error);
-        }
-      }
-    };
-
-    checkData();
-
-    const handleDataChanged = () => {
-      void checkData();
-    };
-
-    window.addEventListener('dataChanged', handleDataChanged);
-    window.addEventListener('allDataCleared', handleDataChanged);
-
-    return () => {
-      window.removeEventListener('dataChanged', handleDataChanged);
-      window.removeEventListener('allDataCleared', handleDataChanged);
-    };
-  }, [checkExistingData]);
-
-  const loadDemoData = async () => {
-    if (!onLoadDemoData) return;
-
-    haptics.medium();
-    setIsLoading(true);
-    setLoadingType('demo');
-
-    try {
-      await onLoadDemoData();
-      setIsLoaded(true);
-      setLoadedType('demo');
-      haptics.success();
-      analytics.trackEvent('demo_data_loaded');
-    } catch (error) {
-      haptics.error();
-      console.error("HomePage - Error loading demo data:", error);
-      if (error instanceof Error) {
-        console.error("Error details:", error.message, error.stack);
-      }
-    } finally {
-      setIsLoading(false);
-      setLoadingType(null);
-    }
-  };
-
-  const loadDemoScheduleOnly = async () => {
-    if (!onLoadDemoScheduleOnly) return;
-
-    haptics.medium();
-    setIsLoading(true);
-    setLoadingType('schedule');
-
-    try {
-      await onLoadDemoScheduleOnly();
-      setIsLoaded(true);
-      setLoadedType('schedule');
-      haptics.success();
-      analytics.trackEvent('demo_schedule_loaded');
-    } catch (error) {
-      haptics.error();
-      console.error("HomePage - Error loading demo schedule:", error);
-      if (error instanceof Error) {
-        console.error("Error details:", error.message, error.stack);
-      }
-    } finally {
-      setIsLoading(false);
-      setLoadingType(null);
-    }
-  };
-
-  const clearData = async () => {
-    if (!onClearData) return;
-
-    haptics.medium();
-
-    try {
-      await onClearData();
-      setIsLoaded(false);
-      analytics.trackEvent('demo_data_cleared');
-    } catch (error) {
-      console.error("Error clearing data:", error);
-      setIsLoaded(false);
-      analytics.trackEvent('demo_data_cleared');
-    }
-  };
+  const { currentScout, currentScoutRoles, updateScoutRoles, toggleScoutRole } = useScout();
+  const showAssignedRoles = currentScout && (!currentScoutRoles || currentScoutRoles.length === 0) ? false : true;
 
   return (
-    <main className="relative h-screen w-full">
-      <div
-        className={cn(
-          "flex flex-col h-screen w-full justify-center items-center gap-6 2xl:pb-6",
-          "bg-size-[40px_40px]",
-          "bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)]",
-          "dark:bg-[linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]"
-        )}
-      >
-        <div className="flex flex-col w-auto justify-center items-center gap-6 scale-75 md:scale-75 lg:scale-100">
-          {logo ? (
-            <img
-              src={logo}
-              width="600"
-              height="240"
-              alt={`${appName} Logo`}
-              className="dark:invert"
-            />
-          ) : (
-            <div className="text-4xl font-bold">{appName}</div>
-          )}
-          <div className="text-center space-y-2">
-            <p>
-              <strong>Version</strong>: {version}
-            </p>
-            <DataAttribution sources={['tba', 'nexus']} variant="compact" />
-          </div>
-        </div>
 
-        {/* Demo Data Section - Only show if handlers provided */}
-        {(onLoadDemoData || onLoadDemoScheduleOnly || onClearData) && (
+    <main className="relative h-screen w-full">
+      <div className={cn("flex h-full w-full flex-col items-center justify-center gap-6 rounded-md border-2 border-dashed p-6", "bg-size-[40px_40px]")}>
+        <h1 className="text-4xl font-bold">{appName}</h1>
+        <h2 className="text-2xl font-semibold">Get Started</h2>
+        <h2 >
+          1. Go to the sidebar to select your scout profile <br />
+          2. Select add new scout<br />
+          3. Enter your Name<br />
+          4. Come back here to select your assigned roles
+        </h2>
+
+
+
+        {showAssignedRoles && (
+
+          ///create a card
           <Card className="w-full max-w-md mx-4 mt-8 scale-75 md:scale-100">
             <CardContent className="p-6">
               <div className="text-center space-y-4">
-                <h2 className="text-lg font-semibold">Demo Data</h2>
+                <h2 className="text-lg font-semibold">Select Assigned Roles</h2>
                 <p className="text-sm text-muted-foreground">
-                  {demoDataDescription}
-                </p>
+                  {roleDescription}</p>
 
-                {!isLoaded ? (
-                  <div className="space-y-2">
-                    {onLoadDemoData && (
-                      <Button
-                        onClick={loadDemoData}
-                        disabled={isLoading}
-                        className="w-full"
-                      >
-                        {isLoading && loadingType === 'demo' ? "Loading..." : "Load Demo Data"}
-                      </Button>
-                    )}
-                    {onLoadDemoScheduleOnly && (
-                      <Button
-                        onClick={loadDemoScheduleOnly}
-                        disabled={isLoading}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        {isLoading && loadingType === 'schedule' ? "Loading..." : "Load Demo Schedule"}
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center gap-2 text-sm text-green-600">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      {loadedType === 'schedule' ? demoScheduleStats : demoDataStats}
-                    </div>
-                    {onClearData && (
-                      <Button
-                        onClick={clearData}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        Clear Data
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <div className="flex flex-col items-start gap-2 mt-4">
+                  {SCOUT_ROLES.map(role => (
+
+                    <label key={role} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={currentScoutRoles.includes(role)}
+                        onChange={() => {
+                          toggleScoutRole(role);
+                        }}
+                        className="h-4 w-4"
+                      />
+
+                      {role}
+
+
+                    </label>
+                    
+                  ))}
+                </div>
+
+                <Button onClick={() => {
+                  updateScoutRoles(currentScoutRoles);
+                }}>
+                  Save Roles
+                </Button>
+
+
               </div>
             </CardContent>
           </Card>
         )}
+
+
       </div>
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white mask-[radial-gradient(ellipse_at_center,transparent_70%,black)] dark:bg-black"></div>
-    </main>
+
+
+    </main >
+
   );
+
+
 };
 
 export default HomePage;

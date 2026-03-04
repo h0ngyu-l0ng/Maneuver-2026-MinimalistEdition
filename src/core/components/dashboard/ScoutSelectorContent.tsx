@@ -68,6 +68,8 @@ export function ScoutSelectorContent({
               setSearchValue(target.value)
             }}
           />
+
+          
           <CommandEmpty>
             <div className="text-center p-4">
               <p className="text-sm text-muted-foreground mb-2">No scouts found</p>
@@ -86,6 +88,7 @@ export function ScoutSelectorContent({
               </Button>
             </div>
           </CommandEmpty>
+
           <CommandList>
             <CommandGroup>
               {scoutsList.map((scout) => (

@@ -1,4 +1,4 @@
-import { Binoculars, Wifi, QrCode, TrendingUp, Map } from 'lucide-react';
+import { Binoculars, Wifi } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/core/lib/utils';
 import { usePWA } from '@/core/hooks/usePWA';
@@ -28,29 +28,35 @@ interface BottomNavItem {
 const navItems: BottomNavItem[] = [
   {
     icon: Binoculars,
-    label: 'Scout',
+    label: 'Match Scout',
     href: '/game-start',
   },
+{
+      icon: Binoculars,
+      label: 'Pit Scout',
+      href: '/pit-scouting',
+},
+
   {
     icon: Wifi,
     label: 'WiFi Data',
     href: '/peer-transfer',
   },
-  {
-    icon: QrCode,
-    label: 'QR Data',
-    href: '/qr-transfer',
-  },
-  {
-    icon: TrendingUp,
-    label: 'Strategy',
-    href: '/strategy-overview',
-  },
-  {
-    icon: Map,
-    label: 'Match',
-    href: '/match-strategy',
-  },
+  // {
+  //   icon: QrCode,
+  //   label: 'QR Data',
+  //   href: '/qr-transfer',
+  // },
+  // {
+  //   icon: TrendingUp,
+  //   label: 'Strategy',
+  //   href: '/strategy-overview',
+  // },
+  // {
+  //   icon: Map,
+  //   label: 'Match',
+  //   href: '/match-strategy',
+  // },
 ];
 
 export function BottomNavigation() {
