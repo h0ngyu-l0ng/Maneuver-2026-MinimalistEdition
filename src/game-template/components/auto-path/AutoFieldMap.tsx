@@ -50,7 +50,7 @@ import {
     GAME_SCOUT_OPTION_KEYS,
     getEffectiveScoutOptions,
 } from "@/game-template/scout-options";
-import { CORE_SCOUT_OPTION_KEYS } from "@/core/components/GameStartComponents/ScoutOptionsSheet";
+import { CORE_SCOUT_OPTION_KEYS } from "@/core/components/game-start/ScoutOptionsSheet";
 
 // Local sub-components
 import { AutoActionLog } from "./components/AutoActionLog";

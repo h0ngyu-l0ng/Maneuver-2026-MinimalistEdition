@@ -14,106 +14,15 @@ import { TeamDisplaySection } from '@/core/components/pit-assignments/TeamDispla
 import { AssignmentResults } from '@/core/components/pit-assignments/AssignmentResults';
 import EventInformationCard from '@/core/components/pit-assignments/EventInformationCard';
 import AssignmentControlsCard from '@/core/components/pit-assignments/AssignmentControlsCard';
+import MatchAssignmentSection from '@/core/components/pit-assignments/MatchAssignmentSection';
 import { DataAttribution } from '@/core/components/DataAttribution';
-import type { PitAssignment } from '@/core/lib/pitAssignmentTypes';
+import type { PitAssignment, MatchAssignment } from '@/core/lib/pitAssignmentTypes';
 import type { NexusPitMap } from '@/core/lib/nexusUtils';
 import type { PitAssignmentTransferPayload } from '@/core/lib/pitAssignmentTransfer';
 import { toast } from 'sonner';
 
-const PitAssignmentsPage: React.FC = () => {
-  // simple component for displaying & editing match assignments
-  const MatchAssignmentSection: React.FC<{
-    eventKey: string;
-    matchAssignments: Array<{id:string;matchKey:string;scoutName:string;assignedAt:number;completed:boolean}>;
-    scoutsList: string[];
-    onChange: (newList: Array<{id:string;matchKey:string;scoutName:string;assignedAt:number;completed:boolean}>) => void;
-  }> = ({ eventKey, matchAssignments, scoutsList, onChange }) => {
-    const [matches, setMatches] = useState<Array<{matchKey:string;matchNum:number}>>([]);
 
-    useEffect(() => {
-      const raw = localStorage.getItem('matchData');
-      if (raw) {
-        try {
-          const arr = JSON.parse(raw) as any[];
-          const list = arr.map(m => ({ matchKey: m.matchKey || m.matchKey || `${m.matchType}${m.matchNum}`, matchNum: m.matchNum || 0 }));
-          setMatches(list.sort((a,b)=>a.matchNum - b.matchNum));
-        } catch {
-          setMatches([]);
-        }
-      }
-    }, [eventKey]);
-
-    const handleGenerate = () => {
-      if (scoutsList.length === 0 || matches.length === 0) return;
-      const newAssign: typeof matchAssignments = [];
-      const totalMatches = matches.length;
-      const totalScouts = scoutsList.length;
-      const base = Math.floor(totalMatches / totalScouts);
-      const rem = totalMatches % totalScouts;
-      let idx = 0;
-      scoutsList.forEach((scout, si) => {
-        const block = si < rem ? base+1 : base;
-        for (let k=0;k<block && idx<totalMatches;k++,idx++){
-          const m = matches[idx];
-          newAssign.push({
-            id: `${eventKey}-${m.matchKey}`,
-            eventKey,
-            matchKey: m.matchKey,
-            scoutName: scout,
-            assignedAt: Date.now(),
-            completed: false,
-          });
-        }
-      });
-      onChange(newAssign);
-    };
-
-    const handleManual = (matchKey: string) => {
-      const scout = window.prompt('Assign scout name for ' + matchKey);
-      if (!scout) return;
-      const existing = matchAssignments.filter(a => a.matchKey !== matchKey);
-      existing.push({ id: `${eventKey}-${matchKey}`, eventKey, matchKey, scoutName: scout, assignedAt: Date.now(), completed: false });
-      onChange(existing);
-    };
-
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Match Assignments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2 mb-4">
-            <Button onClick={handleGenerate} disabled={scoutsList.length===0 || matches.length===0}>
-              Generate Sequential
-            </Button>
-            <Button onClick={() => onChange([])}>
-              Clear
-            </Button>
-          </div>
-          <div className="overflow-y-auto max-h-[400px]">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="text-left">
-                  <th>Match</th><th>Scout</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.map(m => {
-                  const assignment = matchAssignments.find(a => a.matchKey === m.matchKey);
-                  return (
-                    <tr key={m.matchKey} className="cursor-pointer hover:bg-muted" onClick={() => handleManual(m.matchKey)}>
-                      <td className="py-1">{m.matchKey}</td>
-                      <td className="py-1">{assignment?.scoutName || '-'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  const PitAssignmentsPage: React.FC = () => {
   const { scoutsList } = useScoutManagement();
   const { connectedScouts, pushDataToAll } = useWebRTC();
   const [selectedEvent, setSelectedEvent] = useState<string>('');
@@ -122,8 +31,9 @@ const PitAssignmentsPage: React.FC = () => {
   const [pitAddresses, setPitAddresses] = useState<{ [teamNumber: string]: string } | null>(null);
   const [pitMapData, setPitMapData] = useState<NexusPitMap | null>(null);
   const [assignments, setAssignments] = useState<PitAssignment[]>([]);
+ 
   // match assignment support
-  const [matchAssignments, setMatchAssignments] = useState<Array<{id:string;matchKey:string;scoutName:string;assignedAt:number;completed:boolean;}>>([]);
+  const [matchAssignments, setMatchAssignments] = useState<MatchAssignment[]>([]);
   const [assignmentCategory, setAssignmentCategory] = useState<'pit' | 'match'>('pit');
   const [assignmentMode, setAssignmentMode] = useState<'sequential' | 'spatial' | 'manual'>('sequential');
   const [activeTab, setActiveTab] = useState<string>('teams');
@@ -182,7 +92,7 @@ const PitAssignmentsPage: React.FC = () => {
       const savedMatch = localStorage.getItem(matchKey);
       if (savedMatch) {
         try {
-          const parsedMatch = JSON.parse(savedMatch) as typeof matchAssignments;
+          const parsedMatch = JSON.parse(savedMatch) as MatchAssignment[];
           setMatchAssignments(parsedMatch);
         } catch (err) {
           console.warn('Error loading saved match assignments', err);

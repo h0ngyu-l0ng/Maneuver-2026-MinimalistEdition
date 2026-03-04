@@ -65,6 +65,14 @@ The page requires **both** of the following to show assignment controls:
 > [!NOTE]
 > If teams are imported after visiting the page, click away and back to trigger a refresh.
 
+## Component Architecture
+
+To make the page easier to maintain and reuse, we split major UI portions into standalone components under `src/core/components/pit-assignments`.
+The new `MatchAssignmentSection.tsx` holds everything related to listing, generating, and editing match assignments (including the role‑based slot logic).
+This mirrors existing components such as `ScoutManagementSection` and `AssignmentControlsCard`.
+
+> **Tip:** you may want to apply the same pattern on other pages such as [GameStartPage](../GAME_START.md) where team selection and assignment logic can likewise be extracted.  Keeping components small and focused simplifies testing and lets game-specific UIs import only what they need.
+
 ## Assignment Modes
 
 ### Pit Assignment Modes
@@ -89,7 +97,11 @@ Assign individual teams to specific scouts:
 
 ### Match Assignment
 
-Matches are listed from the uploaded schedule and can be distributed in simple sequential blocks across scouts. This category has its own small interface with a "Generate Sequential" button and allows manual edits by clicking match rows. Match assignments are saved separately under `match_assignments_{eventKey}` and also included when using the WiFi sync button.
+Matches are listed from the uploaded schedule and can be distributed in simple sequential blocks across scouts. When generating assignments the system now inspects each scout's role:
+- **comment scouter** entries will be tagged as `redAlliance` (watch the entire red side)
+- **data scouter** entries will cycle through `red1`, `red2`, `red3` robot slots
+
+A new **Slot** column appears in the table; you can also enter or edit a slot when assigning manually. The slot value is stored alongside the scout name and preserved during sync. Match assignments are saved separately under `match_assignments_{eventKey}` and also included when using the WiFi sync button.
 
 An event must have match data (imported on the home page) before the Matches tab becomes available.
 

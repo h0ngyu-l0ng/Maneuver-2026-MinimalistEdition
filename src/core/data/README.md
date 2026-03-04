@@ -171,6 +171,6 @@ with open(f'events_{YEAR}.json', 'w', encoding='utf-8') as f:
 
 ### Related Components
 
-- `src/core/components/GameStartComponents/EventNameSelector.tsx` - Uses this data for event selection
+- `src/core/components/game-start/EventNameSelector.tsx` - Uses this data for event selection
 - `src/types/scouting-entry.ts` - `eventKey` field expects keys from this data
 - `src/core/db/database.ts` - Indexes entries by `eventKey`

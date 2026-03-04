@@ -18,6 +18,13 @@ export interface MatchAssignment {
   scoutName: string;
   assignedAt: number;
   completed: boolean;
+  /**
+   * Optional slot information describing what the scout should watch.
+   * Examples:
+   *   - "red1" / "blue3" (individual robot positions)
+   *   - "redAlliance" / "blueAlliance" (entire alliance for comment scouters)
+   */
+  slot?: string;
   notes?: string;
 }
 
