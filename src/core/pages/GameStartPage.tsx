@@ -20,6 +20,7 @@ import {
   CORE_SCOUT_OPTION_KEYS,
   ScoutOptionsSheet,
 } from "@/core/components/GameStartComponents/ScoutOptionsSheet";
+import { PlayerStationSheet } from "@/core/components/GameStartComponents/PlayerStationOption";
 import { createMatchPrediction, getPredictionForMatch } from "@/core/lib/scoutGamificationUtils";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
@@ -444,7 +445,7 @@ const GameStartPage = () => {
         {/* Main Form Card */}
         <Card className="w-full">
           <CardHeader>
-            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <CardTitle className="text-xl">Match Information</CardTitle>
                 {currentScout && (
@@ -455,11 +456,14 @@ const GameStartPage = () => {
                 )}
               </div>
 
-              <ScoutOptionsSheet
-                options={scoutOptions}
-                onOptionChange={handleScoutOptionChange}
-                customContent={ui.ScoutOptionsContent}
-              />
+              <div className="flex items-center gap-2">
+                <PlayerStationSheet />
+                <ScoutOptionsSheet
+                  options={scoutOptions}
+                  onOptionChange={handleScoutOptionChange}
+                  customContent={ui.ScoutOptionsContent}
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">

@@ -1,74 +1,60 @@
 import { Button } from "@/core/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/core/components/ui/sheet";
 import { Settings2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
-import { ModeToggle } from "../mode-toggle";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/core/components/ui/popover";
 import { useScout } from "@/core/contexts/ScoutContext";
 import { convertTeamRole } from "@/core/lib/utils";
-import { useEffect } from "react";
+import { useState } from "react";
 
+const stations = [
+  { value: "unassigned", label: "Unassigned" },
+  { value: "red-1", label: "Red 1" },
+  { value: "red-2", label: "Red 2" },
+  { value: "red-3", label: "Red 3" },
+  { value: "blue-1", label: "Blue 1" },
+  { value: "blue-2", label: "Blue 2" },
+  { value: "blue-3", label: "Blue 3" },
+];
 
 export function PlayerStationSheet() {
   const { playerStation, setPlayerStation } = useScout();
+  const [open, setOpen] = useState(false);
+
   const handlePlayerStationChange = (value: string) => {
     setPlayerStation(value);
+    setOpen(false);
   };
 
-;
-
-  useEffect(() => {
-      if (playerStation) {
-        const element = document.getElementById(playerStation.toLowerCase().replace(" ", ""));
-        if (element) {
-          (element as HTMLInputElement).checked = true;
-        }
-      }
-    }, [playerStation]);
-
   return (
-    <Sheet>
+    <Popover open={open} onOpenChange={setOpen}>
 
-      <SheetTrigger asChild>
+      <PopoverTrigger asChild>
         <Button variant="outline" size="sm">
           <Settings2 className="h-4 w-4 mr-2" />
-          (Auto) Alliance #
+          {playerStation ? convertTeamRole(playerStation) : "(Auto) Alliance #"}
         </Button>
-      </SheetTrigger>
+      </PopoverTrigger>
 
-
-      <Select
-              value={playerStation}
-              onValueChange={handlePlayerStationChange}
+      <PopoverContent className="w-48 p-2">
+        <div className="space-y-1">
+          {stations.map((station) => (
+            <button
+              key={station.value}
+              onClick={() => handlePlayerStationChange(station.value)}
+              className={`w-full text-left px-3 py-2 rounded text-sm ${
+                playerStation === station.value
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              }`}
             >
-
-              <SelectTrigger>
-                <SelectValue placeholder={convertTeamRole(playerStation) || "Role"} />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem className="text-lg" value="lead">Lead</SelectItem>
-                <SelectItem className="text-lg" value="red-1">Red 1</SelectItem>
-                <SelectItem className="text-lg" value="red-2">Red 2</SelectItem>
-                <SelectItem className="text-lg" value="red-3">Red 3</SelectItem>
-                <SelectItem className="text-lg" value="blue-1">Blue 1</SelectItem>
-                <SelectItem className="text-lg" value="blue-2">Blue 2</SelectItem>
-                <SelectItem className="text-lg" value="blue-3">Blue 3</SelectItem>
-              </SelectContent>
-
-                        <ModeToggle />
-
-
-            </Select>
-
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-
-
-        </SheetContent>
-
-</Sheet>
-);
+              {station.label}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
