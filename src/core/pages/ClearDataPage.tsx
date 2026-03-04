@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useScout } from '@/core/contexts/ScoutContext';
 import { useDataStats } from "@/core/hooks/useDataStats";
 import { useDataCleaning } from "@/core/hooks/useDataCleaning";
 import { DeviceInfoCard } from "@/core/components/data-management/ClearComponents/DeviceInfoCard";
@@ -9,6 +10,7 @@ import { DataClearCard } from "@/core/components/data-management/ClearComponents
 
 const ClearDataPage = () => {
   const [playerStation, setPlayerStation] = useState("");
+  const { currentScout, playerStation: ctxStation } = useScout();
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
 
   const { stats, refreshData, resetStats, updateMatchData } = useDataStats();
@@ -22,9 +24,15 @@ const ClearDataPage = () => {
   } = useDataCleaning(refreshData, resetStats, updateMatchData);
 
   useEffect(() => {
-    const station = localStorage.getItem("playerStation") || "Unknown";
+    // prefer context station which is already scoped to current scout
+    const station = ctxStation ||
+      (currentScout
+        ? localStorage.getItem(`playerStation_${currentScout}`) || ''
+        : '') ||
+      localStorage.getItem('playerStation') ||
+      'Unknown';
     setPlayerStation(station);
-  }, []);
+  }, [currentScout, ctxStation]);
 
   return (
     <div className="min-h-screen w-full px-4 pt-12 pb-24">

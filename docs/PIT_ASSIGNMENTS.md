@@ -6,12 +6,13 @@ Manage scout assignments for pit scouting at FRC events. Automatically divide te
 
 ## Overview
 
-The Pit Assignments system helps lead scouts organize and track pit scouting work by:
+The Pit Assignments system helps lead scouts organize and track scouting work by:
 
-1. **Managing Scouts**: Add/remove scouts who will visit pits
-2. **Generating Assignments**: Automatically divide teams among available scouts
-3. **Tracking Progress**: Mark teams as completed when pit scouting is done
-4. **Persistence**: Assignments are saved per-event and restored on return
+1. **Managing Scouts**: Add/remove scouts who will visit pits or cover matches
+2. **Generating Pit Assignments**: Automatically divide teams among available scouts
+3. **Generating Match Assignments**: Optionally assign upcoming matches to scouts
+4. **Tracking Progress**: Mark teams or matches as completed when scouting is done
+5. **Persistence**: Assignments are saved per-event and restored on return
 
 ### Key Features
 
@@ -22,6 +23,9 @@ The Pit Assignments system helps lead scouts organize and track pit scouting wor
 - **Focus Reload**: Refreshes team data when returning to the page
 
 ## Architecture
+
+The page now supports two categories of assignments (pit vs matches) under a toggle button. Match assignments are maintained in parallel with pit assignments and share the same scout list and WiFi sync logic.
+
 
 ```
 src/core/
@@ -45,6 +49,14 @@ src/core/
 
 ## Requirements
 
+The pit-assignment features require **both** of the following to show controls:
+
+1. **Team Data**: Import from TBA (API Data page) or Nexus
+2. **Scouts**: Add via the Scout Management section or Dev Utilities
+
+The match‑assignment features only require scouts and an uploaded match schedule (use "Import schedule" on the home screen).
+
+
 The page requires **both** of the following to show assignment controls:
 
 1. **Team Data**: Import from TBA (API Data page) or Nexus
@@ -55,23 +67,32 @@ The page requires **both** of the following to show assignment controls:
 
 ## Assignment Modes
 
-### Sequential Mode
+### Pit Assignment Modes
+
+#### Sequential Mode
 Divides teams evenly among scouts in numerical order:
 - Scout A: Teams 1-20
 - Scout B: Teams 21-40
 - Scout C: Teams 41-60
 
-### Spatial Mode (Nexus Required)
+#### Spatial Mode (Nexus Required)
 Groups teams by physical proximity in the pit area using K-means clustering:
 - Reduces walking distance for scouts
 - Requires Nexus pit map data with team coordinates
 - Falls back to sequential if no spatial data available
 
-### Manual Mode
+#### Manual Mode
 Assign individual teams to specific scouts:
 1. Select a scout from the dropdown
 2. Click teams to assign them
 3. Confirm assignments when done
+
+### Match Assignment
+
+Matches are listed from the uploaded schedule and can be distributed in simple sequential blocks across scouts. This category has its own small interface with a "Generate Sequential" button and allows manual edits by clicking match rows. Match assignments are saved separately under `match_assignments_{eventKey}` and also included when using the WiFi sync button.
+
+An event must have match data (imported on the home page) before the Matches tab becomes available.
+
 
 ## Data Sources
 
@@ -82,11 +103,13 @@ Assign individual teams to specific scouts:
 
 ## Persistence
 
-Assignments are stored in localStorage with key format:
+Assignments are stored in localStorage with key formats:
 ```
 pit_assignments_{eventKey}
+match_assignments_{eventKey}
 ```
 
+Both sets are included in the WiFi transfer payload when using the push button, so connected scouts receive whichever data is present.
 This allows different assignments per event and restoration on page reload.
 
 ## Integration

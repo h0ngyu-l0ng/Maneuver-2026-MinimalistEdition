@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import GameStartSelectTeam from "@/core/components/GameStartComponents/GameStartSelectTeam";
 import { EventNameSelector } from "@/core/components/GameStartComponents/EventNameSelector";
+import { ROLE_LABELS } from "@/core/types/scoutMetaData";
 import {
   CORE_SCOUT_OPTION_KEYS,
   ScoutOptionsSheet,
@@ -98,12 +99,22 @@ const GameStartPage = () => {
   const states = location.state;
   const { ui } = useGame();
   const { getNextRoute, isConfigValid } = useWorkflowNavigation();
-  const { currentScout } = useScout();
+  const { currentScout, currentScoutRoles, setCurrentScout } = useScout();
 
   // Debug log when currentScout changes
   useEffect(() => {
     console.log('📋 GameStartPage: currentScout =', currentScout);
   }, [currentScout]);
+
+  // automatically default to last data scouter if none selected
+  useEffect(() => {
+    if (!currentScout) {
+      const lastData = localStorage.getItem('lastDataScouter');
+      if (lastData) {
+        setCurrentScout(lastData);
+      }
+    }
+  }, [currentScout, setCurrentScout]);
 
   // Detect re-scout mode from location.state - use useMemo to recalculate when location.state changes
   const rescoutData = useMemo(() => states?.rescout, [states]);
@@ -115,8 +126,14 @@ const GameStartPage = () => {
   const rescoutTeams = useMemo(() => rescoutData?.teams || [], [rescoutData?.teams]);
   const currentTeamIndex = rescoutData?.currentTeamIndex || 0;
 
-  const parsePlayerStation = () => {
-    const playerStation = localStorage.getItem("playerStation");
+  const parsePlayerStation = (scoutName?: string) => {
+    let playerStation = null;
+    if (scoutName) {
+      playerStation = localStorage.getItem(`playerStation_${scoutName}`);
+    }
+    if (!playerStation) {
+      playerStation = localStorage.getItem("playerStation");
+    }
     if (!playerStation) return { alliance: "", teamPosition: 0 };
 
     if (playerStation === "lead") {
@@ -133,7 +150,7 @@ const GameStartPage = () => {
     return { alliance: "", teamPosition: 0 };
   };
 
-  const stationInfo = parsePlayerStation();
+  const stationInfo = parsePlayerStation(currentScout);
 
   const getInitialMatchNumber = () => {
     if (states?.inputs?.matchNumber) {
@@ -405,6 +422,86 @@ const GameStartPage = () => {
     return () => clearTimeout(timeout);
   }, [matchNumber]);
 
+  // determine if we should show simplified view for data-only scouter
+  const isDataOnly = currentScoutRoles.includes('dataScouter') && !currentScoutRoles.includes('commentScouter');
+
+  if (isDataOnly) {
+    // render pared-down version
+    return (
+      <div className="min-h-screen pt-12 w-full flex flex-col items-center px-4 pb-24 2xl:pb-6">
+        <div className="w-full max-w-2xl">
+          <h1 className="text-2xl font-bold pb-4">Game Start (Data Scouter)</h1>
+        </div>
+        <div className="flex flex-col items-center gap-6 max-w-2xl w-full flex-1 pb-8 md:pb-4">
+          {currentScout && (
+            <Card className="w-full">
+              <CardContent>
+                <div className="text-sm text-muted-foreground">
+                  Scouting as <span className="font-medium">{currentScout}</span> ({ROLE_LABELS.dataScouter.label})
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="w-full">
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>Event Name/Code</Label>
+                <EventNameSelector
+                  currentEventKey={eventKey}
+                  onEventKeyChange={setEventKey}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Match Number</Label>
+                <Input
+                  type="number"
+                  value={matchNumber}
+                  onChange={e => handleMatchNumberChange(e.target.value)}
+                  className="text-lg h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Team Selection</Label>
+                <GameStartSelectTeam
+                  defaultSelectTeam={selectTeam}
+                  setSelectTeam={setSelectTeam}
+                  selectedMatch={debouncedMatchNumber}
+                  selectedAlliance={alliance}
+                  selectedEventKey={eventKey}
+                  preferredTeamPosition={stationInfo.teamPosition}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-4 w-full">
+            <Button
+              variant="outline"
+              onClick={handleGoBack}
+              className="flex-1 h-12 text-lg"
+            >
+              Back
+            </Button>
+            <Button
+              onClick={handleStartScouting}
+              className="flex-2 h-12 text-lg font-semibold"
+              disabled={
+                isRescoutMode
+                  ? false
+                  : (!matchNumber || !selectTeam || !currentScout || !eventKey)
+              }
+            >
+              Start Scouting
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-12 w-full flex flex-col items-center px-4 pb-24 2xl:pb-6">
       <div className="w-full max-w-2xl">
@@ -442,6 +539,23 @@ const GameStartPage = () => {
           </Alert>
         )}
 
+        {/* show stored role assignments for reference */}
+        {(localStorage.getItem('lastDataScouter') || localStorage.getItem('lastCommentScouter')) && (
+          <Card className="w-full border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
+            <CardContent>
+              {localStorage.getItem('lastDataScouter') && (
+                <div className="text-sm">
+                  <strong>{ROLE_LABELS.dataScouter.label}:</strong> {localStorage.getItem('lastDataScouter')}
+                </div>
+              )}
+              {localStorage.getItem('lastCommentScouter') && (
+                <div className="text-sm">
+                  <strong>{ROLE_LABELS.commentScouter.label}:</strong> {localStorage.getItem('lastCommentScouter')}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         {/* Main Form Card */}
         <Card className="w-full">
           <CardHeader>
@@ -452,6 +566,11 @@ const GameStartPage = () => {
                   <p className="text-sm text-muted-foreground">
                     Scouting as:{" "}
                     <span className="font-medium">{currentScout}</span>
+                    {currentScoutRoles.length > 0 && (
+                      <span className="ml-1 text-xs italic">
+                        ({currentScoutRoles.map(r => ROLE_LABELS[r]?.label || r).join(', ')})
+                      </span>
+                    )}
                   </p>
                 )}
               </div>

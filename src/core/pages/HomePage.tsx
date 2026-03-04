@@ -6,7 +6,7 @@ import { hasAccess } from "@/core/components/permissions/HasAccess";
 import { SCOUT_ROLES, ScoutRole } from "../types/scoutRole";
 import React from "react";
 import { ROLE_LABELS } from "../types/scoutMetaData";
-import { Car } from "lucide-react";
+
 
 /**
  * HomePage Props

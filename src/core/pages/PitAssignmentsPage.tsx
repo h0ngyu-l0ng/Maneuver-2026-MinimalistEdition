@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/core/components/animate-ui/radix/tabs";
-import { AlertCircle, Users, BarChart3 } from 'lucide-react';
+import { AlertCircle, Users, BarChart3, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from "@/core/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import { Button } from "@/core/components/ui/button";
 import { useScoutManagement } from '@/core/hooks/useScoutManagement';
 import { useWebRTC } from '@/core/contexts/WebRTCContext';
 import { getAllStoredEventTeams } from '@/core/lib/tbaUtils';
@@ -19,6 +21,99 @@ import type { PitAssignmentTransferPayload } from '@/core/lib/pitAssignmentTrans
 import { toast } from 'sonner';
 
 const PitAssignmentsPage: React.FC = () => {
+  // simple component for displaying & editing match assignments
+  const MatchAssignmentSection: React.FC<{
+    eventKey: string;
+    matchAssignments: Array<{id:string;matchKey:string;scoutName:string;assignedAt:number;completed:boolean}>;
+    scoutsList: string[];
+    onChange: (newList: Array<{id:string;matchKey:string;scoutName:string;assignedAt:number;completed:boolean}>) => void;
+  }> = ({ eventKey, matchAssignments, scoutsList, onChange }) => {
+    const [matches, setMatches] = useState<Array<{matchKey:string;matchNum:number}>>([]);
+
+    useEffect(() => {
+      const raw = localStorage.getItem('matchData');
+      if (raw) {
+        try {
+          const arr = JSON.parse(raw) as any[];
+          const list = arr.map(m => ({ matchKey: m.matchKey || m.matchKey || `${m.matchType}${m.matchNum}`, matchNum: m.matchNum || 0 }));
+          setMatches(list.sort((a,b)=>a.matchNum - b.matchNum));
+        } catch {
+          setMatches([]);
+        }
+      }
+    }, [eventKey]);
+
+    const handleGenerate = () => {
+      if (scoutsList.length === 0 || matches.length === 0) return;
+      const newAssign: typeof matchAssignments = [];
+      const totalMatches = matches.length;
+      const totalScouts = scoutsList.length;
+      const base = Math.floor(totalMatches / totalScouts);
+      const rem = totalMatches % totalScouts;
+      let idx = 0;
+      scoutsList.forEach((scout, si) => {
+        const block = si < rem ? base+1 : base;
+        for (let k=0;k<block && idx<totalMatches;k++,idx++){
+          const m = matches[idx];
+          newAssign.push({
+            id: `${eventKey}-${m.matchKey}`,
+            eventKey,
+            matchKey: m.matchKey,
+            scoutName: scout,
+            assignedAt: Date.now(),
+            completed: false,
+          });
+        }
+      });
+      onChange(newAssign);
+    };
+
+    const handleManual = (matchKey: string) => {
+      const scout = window.prompt('Assign scout name for ' + matchKey);
+      if (!scout) return;
+      const existing = matchAssignments.filter(a => a.matchKey !== matchKey);
+      existing.push({ id: `${eventKey}-${matchKey}`, eventKey, matchKey, scoutName: scout, assignedAt: Date.now(), completed: false });
+      onChange(existing);
+    };
+
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Match Assignments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 mb-4">
+            <Button onClick={handleGenerate} disabled={scoutsList.length===0 || matches.length===0}>
+              Generate Sequential
+            </Button>
+            <Button onClick={() => onChange([])}>
+              Clear
+            </Button>
+          </div>
+          <div className="overflow-y-auto max-h-[400px]">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="text-left">
+                  <th>Match</th><th>Scout</th>
+                </tr>
+              </thead>
+              <tbody>
+                {matches.map(m => {
+                  const assignment = matchAssignments.find(a => a.matchKey === m.matchKey);
+                  return (
+                    <tr key={m.matchKey} className="cursor-pointer hover:bg-muted" onClick={() => handleManual(m.matchKey)}>
+                      <td className="py-1">{m.matchKey}</td>
+                      <td className="py-1">{assignment?.scoutName || '-'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
   const { scoutsList } = useScoutManagement();
   const { connectedScouts, pushDataToAll } = useWebRTC();
   const [selectedEvent, setSelectedEvent] = useState<string>('');
@@ -27,6 +122,9 @@ const PitAssignmentsPage: React.FC = () => {
   const [pitAddresses, setPitAddresses] = useState<{ [teamNumber: string]: string } | null>(null);
   const [pitMapData, setPitMapData] = useState<NexusPitMap | null>(null);
   const [assignments, setAssignments] = useState<PitAssignment[]>([]);
+  // match assignment support
+  const [matchAssignments, setMatchAssignments] = useState<Array<{id:string;matchKey:string;scoutName:string;assignedAt:number;completed:boolean;}>>([]);
+  const [assignmentCategory, setAssignmentCategory] = useState<'pit' | 'match'>('pit');
   const [assignmentMode, setAssignmentMode] = useState<'sequential' | 'spatial' | 'manual'>('sequential');
   const [activeTab, setActiveTab] = useState<string>('teams');
   const [selectedScoutForAssignment, setSelectedScoutForAssignment] = useState<string | null>(null);
@@ -52,11 +150,19 @@ const PitAssignmentsPage: React.FC = () => {
 
   // Save assignments to localStorage whenever they change
   useEffect(() => {
-    if (selectedEvent && assignments.length > 0) {
+    if (selectedEvent) {
       const storageKey = `pit_assignments_${selectedEvent}`;
       localStorage.setItem(storageKey, JSON.stringify(assignments));
     }
   }, [assignments, selectedEvent]);
+
+  // Save match assignments as well
+  useEffect(() => {
+    if (selectedEvent) {
+      const storageKey = `match_assignments_${selectedEvent}`;
+      localStorage.setItem(storageKey, JSON.stringify(matchAssignments));
+    }
+  }, [matchAssignments, selectedEvent]);
 
   // Load saved assignments when event changes
   useEffect(() => {
@@ -69,6 +175,17 @@ const PitAssignmentsPage: React.FC = () => {
           setAssignments(parsedAssignments);
         } catch (error) {
           console.warn('Error loading saved assignments:', error);
+        }
+      }
+      // also load match assignments
+      const matchKey = `match_assignments_${selectedEvent}`;
+      const savedMatch = localStorage.getItem(matchKey);
+      if (savedMatch) {
+        try {
+          const parsedMatch = JSON.parse(savedMatch) as typeof matchAssignments;
+          setMatchAssignments(parsedMatch);
+        } catch (err) {
+          console.warn('Error loading saved match assignments', err);
         }
       }
     }
@@ -377,7 +494,7 @@ const PitAssignmentsPage: React.FC = () => {
       return;
     }
 
-    if (assignments.length === 0) {
+    if (assignments.length === 0 && matchAssignments.length === 0) {
       toast.error('Generate or create assignments first');
       return;
     }
@@ -393,10 +510,11 @@ const PitAssignmentsPage: React.FC = () => {
       sourceScoutName,
       generatedAt: Date.now(),
       assignments,
+      matchAssignments
     };
 
     pushDataToAll(payload, 'pit-assignments');
-    toast.success(`Pushed pit assignments to ${readyConnectedScoutsCount} connected scout${readyConnectedScoutsCount === 1 ? '' : 's'}`);
+    toast.success(`Pushed assignments to ${readyConnectedScoutsCount} connected scout${readyConnectedScoutsCount === 1 ? '' : 's'}`);
   };
 
   return (
@@ -426,6 +544,23 @@ const PitAssignmentsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Category selection */}
+      <div className="flex gap-2 w-full max-w-2xl">
+        <Button
+          variant={assignmentCategory === 'pit' ? 'default' : 'outline'}
+          onClick={() => setAssignmentCategory('pit')}
+        >
+          Pit
+        </Button>
+        <Button
+          variant={assignmentCategory === 'match' ? 'default' : 'outline'}
+          onClick={() => setAssignmentCategory('match')}
+          disabled={!localStorage.getItem('matchData')}
+        >
+          Matches
+        </Button>
+      </div>
+
       {/* Scout Management - Moved to top */}
       <ScoutManagementSection />
 
@@ -440,8 +575,8 @@ const PitAssignmentsPage: React.FC = () => {
           hasTeamData={currentTeams.length > 0}
         />
 
-        {/* Assignment Controls */}
-        {hasValidData && (
+        {/* Assignment Controls (only show for pit category) */}
+        {assignmentCategory === 'pit' && hasValidData && (
           <AssignmentControlsCard
             assignmentMode={assignmentMode}
             pitMapData={pitMapData}
@@ -456,10 +591,33 @@ const PitAssignmentsPage: React.FC = () => {
             onAssignmentsGenerated={handleAssignmentsGenerated}
           />
         )}
+
+        {/* Simple push card for match assignments */}
+        {assignmentCategory === 'match' && (
+          <Card className="flex-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Sync Assignments
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm mb-2">
+                Push the current match and pit assignments to connected scouts over WiFi.
+              </p>
+              <Button
+                onClick={handlePushAssignments}
+                disabled={readyConnectedScoutsCount === 0 || (assignments.length === 0 && matchAssignments.length === 0)}
+              >
+                Push Now
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Tabbed Interface for Team Display and Assignment Results */}
-      {selectedEvent && currentTeams.length > 0 && (
+      {/* Tabbed Interface for Team Display and Assignment Results (only pit category) */}
+      {assignmentCategory === 'pit' && selectedEvent && currentTeams.length > 0 && (
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -522,8 +680,20 @@ const PitAssignmentsPage: React.FC = () => {
         </Tabs>
       )}
 
-      {/* Status Messages */}
-      {!hasValidData && (
+      {/* Match assignment panel (shown when match category selected) */}
+      {assignmentCategory === 'match' && selectedEvent && (
+        <div className="w-full">
+          <MatchAssignmentSection
+            eventKey={selectedEvent}
+            matchAssignments={matchAssignments}
+            scoutsList={availableScouts}
+            onChange={setMatchAssignments}
+          />
+        </div>
+      )}
+
+      {/* Status Messages (only relevant when working with pit assignments) */}
+      {assignmentCategory === 'pit' && !hasValidData && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>

@@ -20,7 +20,20 @@ const addEventToList = (storageKey: string, eventKey: string) => {
 };
 
 const getStationInfo = (): { alliance: 'red' | 'blue' | ''; position: 1 | 2 | 3 | 0 } => {
-  const playerStation = localStorage.getItem('playerStation');
+  // try per-scout key first (use currentScout fallback)
+  let playerStation: string | null = null;
+  try {
+    const currentScout = localStorage.getItem('currentScout');
+    if (currentScout) {
+      playerStation = localStorage.getItem(`playerStation_${currentScout}`);
+    }
+  } catch {
+    /* ignore */
+  }
+  if (!playerStation) {
+    playerStation = localStorage.getItem('playerStation');
+  }
+
   if (!playerStation || playerStation === 'lead') {
     return { alliance: '', position: 0 };
   }
