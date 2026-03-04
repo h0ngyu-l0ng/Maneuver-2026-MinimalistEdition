@@ -349,12 +349,22 @@ function AutoFieldMapContent({
             ? { xMin: neutralMidX, xMax: 1 }
             : { xMin: 0, xMax: neutralMidX };
     }, [alliance]);
-    const allianceClipStyle = useMemo(
-        () => ({
-            clipPath: `inset(0 ${(1 - allianceFieldBounds.xMax) * 100}% 0 ${allianceFieldBounds.xMin * 100}%)`,
-        }),
-        [allianceFieldBounds]
-    );
+    const allianceViewportStyle = useMemo(() => {
+        const visibleWidth = Math.max(allianceFieldBounds.xMax - allianceFieldBounds.xMin, 0.01);
+
+        return {
+            width: `${100 / visibleWidth}%`,
+            left: `-${(allianceFieldBounds.xMin / visibleWidth) * 100}%`,
+        };
+    }, [allianceFieldBounds]);
+    const croppedContainerStyle = useMemo(() => {
+        const visibleWidth = Math.max(allianceFieldBounds.xMax - allianceFieldBounds.xMin, 0.01);
+
+        return {
+            width: `${visibleWidth * 100}%`,
+            aspectRatio: `${2 * visibleWidth} / 1`,
+        };
+    }, [allianceFieldBounds]);
     const {
         drawingPoints: hookDrawingPoints,
         handleDrawStart,
@@ -1228,16 +1238,16 @@ function AutoFieldMapContent({
             />
 
             {/* Field with Overlay Buttons */}
-            <div className={cn("flex-1 relative", isFullscreen ? "h-full flex items-center justify-center" : "") }>
+            <div className={cn("flex-1 relative", isFullscreen ? "h-full flex items-center justify-start" : "") }>
                 <div
                     ref={containerRef}
                     className={cn(
                         "relative rounded-lg overflow-hidden border border-slate-700 bg-transparent select-none",
-                        "w-full aspect-2/1",
-                        isFullscreen ? "max-h-[85vh] m-auto" : "h-auto",
+                        isFullscreen ? "max-h-[85vh]" : "h-auto",
                         shouldPulseAutoBorder && "border-green-500 animate-pulse",
                         isFieldRotated && "rotate-180" // 180° rotation for field orientation preference
                     )}
+                    style={croppedContainerStyle}
                 >
                 {!pendingShotTypeWaypoint && (isSelectingScore || isSelectingPass || isSelectingCollect) && (
                     <div
@@ -1289,7 +1299,8 @@ function AutoFieldMapContent({
                     </div>
                 )}
 
-                <div className="absolute inset-0" style={allianceClipStyle}>
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-y-0" style={allianceViewportStyle}>
                         {/* Field Background */}
                         <img
                             src={fieldImage}
@@ -1370,6 +1381,7 @@ function AutoFieldMapContent({
                                 )}
                             </div>
                         )}
+                    </div>
                 </div>
 
                 {/* Start Selection Guidance Overlay */}

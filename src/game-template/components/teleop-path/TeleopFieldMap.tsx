@@ -245,12 +245,22 @@ function TeleopFieldMapContent() {
             ? { xMin: neutralMidX, xMax: 1 }
             : { xMin: 0, xMax: neutralMidX };
     }, [alliance]);
-    const allianceClipStyle = useMemo(
-        () => ({
-            clipPath: `inset(0 ${(1 - allianceFieldBounds.xMax) * 100}% 0 ${allianceFieldBounds.xMin * 100}%)`,
-        }),
-        [allianceFieldBounds]
-    );
+    const allianceViewportStyle = useMemo(() => {
+        const visibleWidth = Math.max(allianceFieldBounds.xMax - allianceFieldBounds.xMin, 0.01);
+
+        return {
+            width: `${100 / visibleWidth}%`,
+            left: `-${(allianceFieldBounds.xMin / visibleWidth) * 100}%`,
+        };
+    }, [allianceFieldBounds]);
+    const croppedContainerStyle = useMemo(() => {
+        const visibleWidth = Math.max(allianceFieldBounds.xMax - allianceFieldBounds.xMin, 0.01);
+
+        return {
+            width: `${visibleWidth * 100}%`,
+            aspectRatio: `${2 * visibleWidth} / 1`,
+        };
+    }, [allianceFieldBounds]);
     const {
         drawingPoints,
         handleDrawStart,
@@ -1142,20 +1152,21 @@ function TeleopFieldMapContent() {
             />
 
             {/* Field Map */}
-            <div className={cn("flex-1 relative", isFullscreen ? "h-full flex items-center justify-center" : "")}>
+            <div className={cn("flex-1 relative", isFullscreen ? "h-full flex items-center justify-start" : "") }>
                 {/* Container with 2:1 aspect ratio */}
                 <div
                     ref={containerRef}
                     className={cn(
                         "relative rounded-lg overflow-hidden border border-slate-700 bg-transparent select-none",
-                        "w-full aspect-[2/1]",
-                        isFullscreen ? "max-h-[85vh] m-auto" : "h-auto"
+                        isFullscreen ? "max-h-[85vh]" : "h-auto"
                     )}
                     style={{
+                        ...croppedContainerStyle,
                         transform: isFieldRotated ? 'rotate(180deg)' : undefined,
                     }}
                 >
-                    <div className="absolute inset-0" style={allianceClipStyle}>
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute inset-y-0" style={allianceViewportStyle}>
                             {/* Field Background */}
                             <img
                                 src={fieldImage}
@@ -1262,6 +1273,7 @@ function TeleopFieldMapContent() {
                                     })}
                                 </>
                             )}
+                        </div>
                     </div>
 
                     {/* Score/Pass Mode Overlay */}
