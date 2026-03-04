@@ -1,4 +1,4 @@
-import { Binoculars, Wifi, QrCode, TrendingUp, Map } from 'lucide-react';
+import { Binoculars, Wifi } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/core/lib/utils';
 import { usePWA } from '@/core/hooks/usePWA';
@@ -7,6 +7,9 @@ import { useNavigationConfirm } from '@/core/hooks/useNavigationConfirm';
 import { NavigationConfirmDialog } from '@/core/components/NavigationConfirmDialog';
 import { haptics } from '@/core/lib/haptics';
 import { Button } from '@/core/components/ui/button';
+import { ScoutRole } from '@/core/types/scoutRole';
+import { useScout } from '@/core/contexts/ScoutContext';
+import { hasAccess } from '@/core/components/permissions/HasAccess';
 
 /**
  * Bottom Navigation Component
@@ -23,33 +26,25 @@ interface BottomNavItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   href: string;
+  requiredRoles?: ScoutRole[];
 }
 
 const navItems: BottomNavItem[] = [
   {
     icon: Binoculars,
-    label: 'Scout',
+    label: 'Match Scout',
     href: '/game-start',
   },
+{
+      icon: Binoculars,
+      label: 'Pit Scout',
+      href: '/pit-scouting',
+},
+
   {
     icon: Wifi,
     label: 'WiFi Data',
     href: '/peer-transfer',
-  },
-  {
-    icon: QrCode,
-    label: 'QR Data',
-    href: '/qr-transfer',
-  },
-  {
-    icon: TrendingUp,
-    label: 'Strategy',
-    href: '/strategy-overview',
-  },
-  {
-    icon: Map,
-    label: 'Match',
-    href: '/match-strategy',
   },
 ];
 
@@ -57,6 +52,7 @@ export function BottomNavigation() {
   const location = useLocation();
   const isPWA = usePWA();
   const isMobile = useIsMobile();
+  const { currentScoutRoles = [] } = useScout();
   const {
     confirmNavigation,
     handleConfirm,
@@ -72,6 +68,9 @@ export function BottomNavigation() {
   if (!shouldShow) {
     return null;
   }
+
+  // Filter nav items based on scout roles
+  const visibleItems = navItems.filter(item => hasAccess(currentScoutRoles, item.requiredRoles));
 
   const handleNavigation = (href: string, label: string) => {
     haptics.light();
@@ -90,7 +89,7 @@ export function BottomNavigation() {
           </div>
         )}
         <nav className="flex items-center justify-around py-2 px-4">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
 

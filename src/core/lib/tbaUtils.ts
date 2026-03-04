@@ -1,8 +1,17 @@
 // @ts-nocheck
 // The Blue Alliance API utilities
 const TBA_BASE_URL = 'https://www.thebluealliance.com/api/v3';
-// Replace this with your actual TBA API key from https://www.thebluealliance.com/account
-const TBA_AUTH_KEY = 'YOUR_TBA_API_KEY_HERE';
+// Get API key from environment or localStorage (for session-based override)
+// Trim to remove accidental whitespace (e.g. ".env" value with a leading space)
+let rawTbaKey = import.meta.env.VITE_TBA_API_KEY || localStorage.getItem('tbaApiKey') || '';
+if (typeof rawTbaKey === 'string') {
+  rawTbaKey = rawTbaKey.trim();
+}
+const TBA_AUTH_KEY = rawTbaKey;
+
+if (!TBA_AUTH_KEY) {
+  console.warn('TBA API key is not configured; TBA requests will fail.');
+}
 
 export interface TBAMatch {
   key: string;

@@ -35,14 +35,17 @@ function isAllowedEndpoint(provider: Provider, endpoint: string): boolean {
 }
 
 function getServerApiKey(provider: Provider): string | undefined {
-  if (provider === 'tba') {
-    return process.env.TBA_API_KEY || process.env.TBA_AUTH_KEY || process.env.VITE_TBA_API_KEY;
-  }
-  if (provider === 'nexus') {
-    return process.env.NEXUS_API_KEY || process.env.NEXUS_AUTH_KEY || process.env.VITE_NEXUS_API_KEY;
-  }
+  const rawKey = provider === 'tba'
+    ? process.env.TBA_API_KEY || process.env.TBA_AUTH_KEY || process.env.VITE_TBA_API_KEY
+    : provider === 'nexus'
+      ? process.env.NEXUS_API_KEY || process.env.NEXUS_AUTH_KEY || process.env.VITE_NEXUS_API_KEY
+      : process.env.STATBOTICS_API_KEY || process.env.VITE_STATBOTICS_API_KEY;
 
-  return process.env.STATBOTICS_API_KEY || process.env.VITE_STATBOTICS_API_KEY;
+  if (typeof rawKey === 'string') {
+    const trimmed = rawKey.trim();
+    return trimmed || undefined;
+  }
+  return undefined;
 }
 
 export const handler: Handler = async (event) => {

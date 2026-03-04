@@ -3,7 +3,7 @@ import { Input } from "@/core/components/ui/input";
 import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
-import { EventNameSelector } from "@/core/components/GameStartComponents/EventNameSelector";
+import { EventNameSelector } from "@/core/components/game-start/EventNameSelector";
 import { User, Hash, Calendar, FolderOpen, ClipboardList } from "lucide-react";
 
 interface BasicInformationProps {

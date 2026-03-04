@@ -10,7 +10,7 @@ import {
   type FuelOPRDisplayRow,
   type FuelOPRDisplayMode,
 } from '@/core/components/match-validation';
-import { EventNameSelector } from '@/core/components/GameStartComponents/EventNameSelector';
+import { EventNameSelector } from '@/core/components/game-start/EventNameSelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
 import { Button } from '@/core/components/ui/button';
 import { Checkbox } from '@/core/components/ui/checkbox';

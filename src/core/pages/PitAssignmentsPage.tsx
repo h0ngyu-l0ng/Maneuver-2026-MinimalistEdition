@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/core/components/animate-ui/radix/tabs";
-import { AlertCircle, Users, BarChart3 } from 'lucide-react';
+import { AlertCircle, Users, BarChart3, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from "@/core/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import { Button } from "@/core/components/ui/button";
 import { useScoutManagement } from '@/core/hooks/useScoutManagement';
 import { useWebRTC } from '@/core/contexts/WebRTCContext';
 import { getAllStoredEventTeams } from '@/core/lib/tbaUtils';
@@ -12,13 +14,15 @@ import { TeamDisplaySection } from '@/core/components/pit-assignments/TeamDispla
 import { AssignmentResults } from '@/core/components/pit-assignments/AssignmentResults';
 import EventInformationCard from '@/core/components/pit-assignments/EventInformationCard';
 import AssignmentControlsCard from '@/core/components/pit-assignments/AssignmentControlsCard';
+import MatchAssignmentSection from '@/core/components/pit-assignments/MatchAssignmentSection';
 import { DataAttribution } from '@/core/components/DataAttribution';
-import type { PitAssignment } from '@/core/lib/pitAssignmentTypes';
+import type { PitAssignment, MatchAssignment } from '@/core/lib/pitAssignmentTypes';
 import type { NexusPitMap } from '@/core/lib/nexusUtils';
 import type { PitAssignmentTransferPayload } from '@/core/lib/pitAssignmentTransfer';
 import { toast } from 'sonner';
 
-const PitAssignmentsPage: React.FC = () => {
+
+  const PitAssignmentsPage: React.FC = () => {
   const { scoutsList } = useScoutManagement();
   const { connectedScouts, pushDataToAll } = useWebRTC();
   const [selectedEvent, setSelectedEvent] = useState<string>('');
@@ -27,6 +31,10 @@ const PitAssignmentsPage: React.FC = () => {
   const [pitAddresses, setPitAddresses] = useState<{ [teamNumber: string]: string } | null>(null);
   const [pitMapData, setPitMapData] = useState<NexusPitMap | null>(null);
   const [assignments, setAssignments] = useState<PitAssignment[]>([]);
+ 
+  // match assignment support
+  const [matchAssignments, setMatchAssignments] = useState<MatchAssignment[]>([]);
+  const [assignmentCategory, setAssignmentCategory] = useState<'pit' | 'match'>('pit');
   const [assignmentMode, setAssignmentMode] = useState<'sequential' | 'spatial' | 'manual'>('sequential');
   const [activeTab, setActiveTab] = useState<string>('teams');
   const [selectedScoutForAssignment, setSelectedScoutForAssignment] = useState<string | null>(null);
@@ -52,11 +60,19 @@ const PitAssignmentsPage: React.FC = () => {
 
   // Save assignments to localStorage whenever they change
   useEffect(() => {
-    if (selectedEvent && assignments.length > 0) {
+    if (selectedEvent) {
       const storageKey = `pit_assignments_${selectedEvent}`;
       localStorage.setItem(storageKey, JSON.stringify(assignments));
     }
   }, [assignments, selectedEvent]);
+
+  // Save match assignments as well
+  useEffect(() => {
+    if (selectedEvent) {
+      const storageKey = `match_assignments_${selectedEvent}`;
+      localStorage.setItem(storageKey, JSON.stringify(matchAssignments));
+    }
+  }, [matchAssignments, selectedEvent]);
 
   // Load saved assignments when event changes
   useEffect(() => {
@@ -69,6 +85,17 @@ const PitAssignmentsPage: React.FC = () => {
           setAssignments(parsedAssignments);
         } catch (error) {
           console.warn('Error loading saved assignments:', error);
+        }
+      }
+      // also load match assignments
+      const matchKey = `match_assignments_${selectedEvent}`;
+      const savedMatch = localStorage.getItem(matchKey);
+      if (savedMatch) {
+        try {
+          const parsedMatch = JSON.parse(savedMatch) as MatchAssignment[];
+          setMatchAssignments(parsedMatch);
+        } catch (err) {
+          console.warn('Error loading saved match assignments', err);
         }
       }
     }
@@ -377,7 +404,7 @@ const PitAssignmentsPage: React.FC = () => {
       return;
     }
 
-    if (assignments.length === 0) {
+    if (assignments.length === 0 && matchAssignments.length === 0) {
       toast.error('Generate or create assignments first');
       return;
     }
@@ -393,10 +420,11 @@ const PitAssignmentsPage: React.FC = () => {
       sourceScoutName,
       generatedAt: Date.now(),
       assignments,
+      matchAssignments
     };
 
     pushDataToAll(payload, 'pit-assignments');
-    toast.success(`Pushed pit assignments to ${readyConnectedScoutsCount} connected scout${readyConnectedScoutsCount === 1 ? '' : 's'}`);
+    toast.success(`Pushed assignments to ${readyConnectedScoutsCount} connected scout${readyConnectedScoutsCount === 1 ? '' : 's'}`);
   };
 
   return (
@@ -404,9 +432,9 @@ const PitAssignmentsPage: React.FC = () => {
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Pit Assignments</h1>
+            <h1 className="text-3xl font-bold">Match & Pit Assignments</h1>
             <p className="text-muted-foreground">
-              Manage scouts and assign teams for pit scouting
+              Manage scouts and assign teams for pit & match scouting
             </p>
           </div>
           {/* Data source attribution */}
@@ -426,6 +454,23 @@ const PitAssignmentsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Category selection */}
+      <div className="flex gap-2 w-full max-w-2xl">
+        <Button
+          variant={assignmentCategory === 'pit' ? 'default' : 'outline'}
+          onClick={() => setAssignmentCategory('pit')}
+        >
+          Pit
+        </Button>
+        <Button
+          variant={assignmentCategory === 'match' ? 'default' : 'outline'}
+          onClick={() => setAssignmentCategory('match')}
+          disabled={!localStorage.getItem('matchData')}
+        >
+          Matches
+        </Button>
+      </div>
+
       {/* Scout Management - Moved to top */}
       <ScoutManagementSection />
 
@@ -440,8 +485,8 @@ const PitAssignmentsPage: React.FC = () => {
           hasTeamData={currentTeams.length > 0}
         />
 
-        {/* Assignment Controls */}
-        {hasValidData && (
+        {/* Assignment Controls (only show for pit category) */}
+        {assignmentCategory === 'pit' && hasValidData && (
           <AssignmentControlsCard
             assignmentMode={assignmentMode}
             pitMapData={pitMapData}
@@ -456,10 +501,33 @@ const PitAssignmentsPage: React.FC = () => {
             onAssignmentsGenerated={handleAssignmentsGenerated}
           />
         )}
+
+        {/* Simple push card for match assignments */}
+        {assignmentCategory === 'match' && (
+          <Card className="flex-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Sync Assignments
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm mb-2">
+                Push the current match and pit assignments to connected scouts over WiFi.
+              </p>
+              <Button
+                onClick={handlePushAssignments}
+                disabled={readyConnectedScoutsCount === 0 || (assignments.length === 0 && matchAssignments.length === 0)}
+              >
+                Push Now
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Tabbed Interface for Team Display and Assignment Results */}
-      {selectedEvent && currentTeams.length > 0 && (
+      {/* Tabbed Interface for Team Display and Assignment Results (only pit category) */}
+      {assignmentCategory === 'pit' && selectedEvent && currentTeams.length > 0 && (
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -522,8 +590,20 @@ const PitAssignmentsPage: React.FC = () => {
         </Tabs>
       )}
 
-      {/* Status Messages */}
-      {!hasValidData && (
+      {/* Match assignment panel (shown when match category selected) */}
+      {assignmentCategory === 'match' && selectedEvent && (
+        <div className="w-full">
+          <MatchAssignmentSection
+            eventKey={selectedEvent}
+            matchAssignments={matchAssignments}
+            scoutsList={availableScouts}
+            onChange={setMatchAssignments}
+          />
+        </div>
+      )}
+
+      {/* Status Messages (only relevant when working with pit assignments) */}
+      {assignmentCategory === 'pit' && !hasValidData && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>

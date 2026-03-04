@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/cor
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
 import { Alert, AlertDescription } from "@/core/components/ui/alert";
-import { EventNameSelector } from "@/core/components/GameStartComponents/EventNameSelector";
+import { EventNameSelector } from "@/core/components/game-start/EventNameSelector";
 import {
   Calendar,
   Trash2,
