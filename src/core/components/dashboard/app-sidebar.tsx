@@ -21,11 +21,7 @@ import { ScoutRole } from "@/core/types/scoutRole"
 
 const data = {
   navMain: [
-    {
-      title: "Manage Scouts",
-      url: "/scouts",
-      icon: Users,
-    },
+
     // {
     //   title: "Data Actions",
     //   url: "/settings",
@@ -56,21 +52,10 @@ const data = {
           title: "WiFi Transfer (Beta)",
           url: "/peer-transfer",
         },
-
-        {
-          title: "Match & Pit Assignments",
-          url: "/pit-assignments",
-
-          requiredRoles: ["leadership", "mentors"] as ScoutRole[]
-        }
-
-
       ]
     },
 
-
-
-
+   
     {
       title: "Strategy",
       url: "#",
@@ -102,6 +87,32 @@ const data = {
       ],
     },
 
+     {
+      title: "Scout Management",
+      url: "#",
+      icon: Users,
+      items: [
+        {
+          title: "Match & Pit Assignments",
+          url: "/pit-assignments",
+          requiredRoles: ["leadership", "mentors"] as ScoutRole[],
+        },
+        
+        {
+          title: "Achievements",
+          url: "/achievements",
+          requiredRoles: ["unlockLeaderboard"] as ScoutRole[]
+        },
+
+        {
+          title: "Scout Leaderboard",
+          url: "/scout-management",
+          requiredRoles: ["unlockLeaderboard"] as ScoutRole[]
+        },
+
+      ],
+    },
+
 
 
     {
@@ -111,6 +122,7 @@ const data = {
         {
           title: "Clear Data",
           url: "/clear-data",
+          requiredRoles: ["leadership", "mentors"] as ScoutRole[]
         },
         {
           title: "JSON Data Transfer",
@@ -122,23 +134,13 @@ const data = {
         },
 
 
-        {
-          title: "Achievements",
-          url: "/achievements",
-          requiredRoles: ["unlockLeaderboard"] as ScoutRole[]
-        },
-
-
-        {
-          title: "Scout Leaderboard",
-          url: "/scout-management",
-          requiredRoles: ["unlockLeaderboard"] as ScoutRole[]
-        },
+        
 
         ...(import.meta.env.DEV ? [
           {
             title: "Dev Utilities",
             url: "/dev-utilities",
+            requiredRoles: ["leadership", "mentors"] as ScoutRole[]
           }] : [])
 
       ],
@@ -253,7 +255,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button] h-fit"
             >
-              
+
             </SidebarMenuButton>
             <Separator className="my-1" />
           </SidebarMenuItem>

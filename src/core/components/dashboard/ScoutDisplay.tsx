@@ -57,7 +57,7 @@ export function ScoutDisplay({ currentScout, currentScoutStakes, currentScoutRol
             key={role}
             className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs"
           >
-            {ROLE_LABELS[role]?.label || role}
+            {(ROLE_LABELS[role]?.label || role).slice(0, 3).toUpperCase()}
           </span>
         ))}
       </div>
