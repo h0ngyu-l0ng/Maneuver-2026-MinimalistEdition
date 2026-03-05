@@ -11,6 +11,14 @@ import { useGame } from "@/core/contexts/GameContext";
 import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
 import { submitMatchData } from "@/core/lib/submitMatch";
 import { workflowConfig } from "@/game-template/game-schema";
+import { UniversalDropdown } from "@/core/components/ui/universal-dropdown";
+
+const ENDGAME_CLIMB_LEVEL_OPTIONS = [
+  { value: "none", label: "No Climb" },
+  { value: "1", label: "Level 1" },
+  { value: "2", label: "Level 2" },
+  { value: "3", label: "Level 3" },
+];
 
 const EndgamePage = () => {
   const { ui, transformation } = useGame();
@@ -25,6 +33,13 @@ const EndgamePage = () => {
     return saved ? JSON.parse(saved) : {};
   });
   const [comment, setComment] = useState("");
+  const endgameClimbLevel = robotStatus?.climbL3
+    ? "3"
+    : robotStatus?.climbL2
+      ? "2"
+      : robotStatus?.climbL1
+        ? "1"
+        : "none";
 
   const updateRobotStatus = (updates: Partial<any>) => {
     setRobotStatus((prev: any) => {
@@ -33,6 +48,14 @@ const EndgamePage = () => {
       return newStatus;
     });
     toast.success("Status updated");
+  };
+
+  const handleEndgameClimbLevelChange = (value: string) => {
+    updateRobotStatus({
+      climbL1: value === "1",
+      climbL2: value === "2",
+      climbL3: value === "3",
+    });
   };
 
   const handleSubmit = async () => {
@@ -128,6 +151,20 @@ const EndgamePage = () => {
             </CardContent>
           </Card>
         )}
+
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">Endgame Climb Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UniversalDropdown
+              value={endgameClimbLevel}
+              options={ENDGAME_CLIMB_LEVEL_OPTIONS}
+              onValueChange={handleEndgameClimbLevelChange}
+              title="Select Endgame Climb Level"
+            />
+          </CardContent>
+        </Card>
 
         {/* Comments Section */}
         <Card className="w-full flex-1">

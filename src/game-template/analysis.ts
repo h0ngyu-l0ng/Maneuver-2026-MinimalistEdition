@@ -760,6 +760,7 @@ export const strategyAnalysis: StrategyAnalysis<ScoutingEntryTemplate> = {
                     { key: 'avgAutoPoints', label: 'Auto Points', type: 'number', color: 'blue' },
                     { key: 'avgTeleopPoints', label: 'Teleop Points', type: 'number', color: 'purple' },
                     { key: 'avgEndgamePoints', label: 'Endgame Points', type: 'number', color: 'orange' },
+                    
                     { key: 'statboticsTotalPoints', label: 'Statbotics EPA', type: 'number', color: 'green', subtitle: 'Total Points' },
                     { key: 'statboticsTeleopPoints', label: 'Statbotics EPA', type: 'number', color: 'purple', subtitle: 'Teleop Points' },
                     { key: 'statboticsAutoPoints', label: 'Statbotics EPA', type: 'number', color: 'blue', subtitle: 'Auto Points' },
