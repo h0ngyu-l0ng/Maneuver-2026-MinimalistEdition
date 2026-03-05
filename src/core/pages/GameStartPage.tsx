@@ -16,71 +16,14 @@ import {
 import { toast } from "sonner";
 import GameStartSelectTeam from "@/core/components/GameStartComponents/GameStartSelectTeam";
 import { EventNameSelector } from "@/core/components/GameStartComponents/EventNameSelector";
-import {
-  CORE_SCOUT_OPTION_KEYS,
-  // ScoutOptionsSheet,
-} from "@/core/components/GameStartComponents/ScoutOptionsSheet";
+// import { ScoutOptionsSheet } from "@/core/components/GameStartComponents/ScoutOptionsSheet";
 import { CommentScoutAllianceSheet, PlayerStationSheet } from "@/core/components/GameStartComponents/PlayerStationOption";
 import { createMatchPrediction, getPredictionForMatch } from "@/core/lib/scoutGamificationUtils";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
 import { useScout } from "@/core/contexts/ScoutContext";
-import type { ScoutOptionsState } from "@/types";
-import {
-  GAME_SCOUT_OPTION_DEFAULTS,
-} from "@/game-template/scout-options";
 
-const SCOUT_OPTIONS_STORAGE_KEY = "scoutOptions";
 const AUTO_SWITCH_ONCE_STORAGE_PREFIX = 'autoSwitchToTeleopDone';
-
-const DEFAULT_SCOUT_OPTIONS: ScoutOptionsState = {
-  [CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation]: false,
-  [CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry]: false,
-  [CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s]: false,
-  ...GAME_SCOUT_OPTION_DEFAULTS,
-};
-
-const normalizeAutoCueStartMode = (options: ScoutOptionsState): ScoutOptionsState => {
-  const autoAdvanceToTeleop =
-    options[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] === true;
-  const fromAutoScreenEntry =
-    options[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] === true;
-  const fromStartConfirmation =
-    options[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] !== false;
-
-  if (autoAdvanceToTeleop) {
-    return {
-      ...options,
-      [CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation]: false,
-      [CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry]: false,
-      [CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s]: true,
-    };
-  }
-
-  if (fromAutoScreenEntry) {
-    return {
-      ...options,
-      [CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation]: false,
-      [CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry]: true,
-      [CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s]: false,
-    };
-  }
-
-  if (!fromStartConfirmation) {
-    return {
-      ...options,
-      [CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation]: false,
-      [CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry]: false,
-      [CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s]: false,
-    };
-  }
-
-  return {
-    ...options,
-    [CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry]: false,
-    [CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s]: false,
-  };
-};
 
 const buildAutoSwitchOnceStorageKey = (
   eventKey: string,
@@ -176,20 +119,6 @@ const GameStartPage = () => {
     states?.inputs?.eventKey || localStorage.getItem("eventKey") || ""
   );
   const [predictedWinner, setPredictedWinner] = useState<"red" | "blue" | "none">("none");
-  // const [scoutOptions, setScoutOptions] = useState<ScoutOptionsState>(() => {
-  //   const stored = localStorage.getItem(SCOUT_OPTIONS_STORAGE_KEY);
-  //   if (!stored) return DEFAULT_SCOUT_OPTIONS;
-
-  //   try {
-  //     const parsed = JSON.parse(stored) as ScoutOptionsState;
-  //     return normalizeAutoCueStartMode({
-  //       ...DEFAULT_SCOUT_OPTIONS,
-  //       ...parsed,
-  //     });
-  //   } catch {
-  //     return DEFAULT_SCOUT_OPTIONS;
-  //   }
-  // });
 
   // Debounce matchNumber for team selection
   useEffect(() => {
@@ -226,10 +155,6 @@ const GameStartPage = () => {
 
     loadExistingPrediction();
   }, [matchNumber, eventKey, currentScout]);
-
-  useEffect(() => {
-    localStorage.setItem(SCOUT_OPTIONS_STORAGE_KEY, JSON.stringify(scoutOptions));
-  }, [scoutOptions]);
 
   // Effect to auto-set alliance for station-driven scouters from player station
   useEffect(() => {
@@ -276,43 +201,6 @@ const GameStartPage = () => {
       }
     }
   };
-
-  // const handleScoutOptionChange = (key: string, value: boolean) => {
-  //   setScoutOptions((prev) => {
-  //     const next = {
-  //       ...prev,
-  //       [key]: value,
-  //     };
-
-  //     if (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation && value) {
-  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
-  //       next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
-  //     }
-
-  //     if (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry && value) {
-  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
-  //       next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
-  //     }
-
-  //     if (key === CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s && value) {
-  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
-  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
-  //     }
-
-  //     if (
-  //       (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation ||
-  //         key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry ||
-  //         key === CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s) &&
-  //       value === false
-  //     ) {
-  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
-  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
-  //       next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
-  //     }
-
-  //     return normalizeAutoCueStartMode(next);
-  //   });
-  // };
 
   const validateInputs = () => {
     // Check workflow config is valid
@@ -366,7 +254,7 @@ const GameStartPage = () => {
     localStorage.setItem("matchNumber", matchNumber);
     localStorage.setItem("selectTeam", selectedTeamForFlow);
     localStorage.setItem("alliance", alliance);
-    localStorage.setItem(SCOUT_OPTIONS_STORAGE_KEY, JSON.stringify(scoutOptions));
+    // Scout options intentionally disabled on this page.
 
     const autoSwitchOnceStorageKey = buildAutoSwitchOnceStorageKey(
       eventKey,
@@ -389,7 +277,7 @@ const GameStartPage = () => {
           scoutName: currentScout,
           selectTeam: selectedTeamForFlow,
           eventKey,
-          scoutOptions,
+          // scoutOptions,
         },
         ...(isRescoutMode && {
           rescout: {
