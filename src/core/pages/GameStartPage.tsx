@@ -18,14 +18,13 @@ import GameStartSelectTeam from "@/core/components/GameStartComponents/GameStart
 import { EventNameSelector } from "@/core/components/GameStartComponents/EventNameSelector";
 import {
   CORE_SCOUT_OPTION_KEYS,
-  ScoutOptionsSheet,
+  // ScoutOptionsSheet,
 } from "@/core/components/GameStartComponents/ScoutOptionsSheet";
 import { CommentScoutAllianceSheet, PlayerStationSheet } from "@/core/components/GameStartComponents/PlayerStationOption";
 import { createMatchPrediction, getPredictionForMatch } from "@/core/lib/scoutGamificationUtils";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useWorkflowNavigation } from "@/core/hooks/useWorkflowNavigation";
 import { useScout } from "@/core/contexts/ScoutContext";
-import { useGame } from "@/core/contexts/GameContext";
 import type { ScoutOptionsState } from "@/types";
 import {
   GAME_SCOUT_OPTION_DEFAULTS,
@@ -96,7 +95,6 @@ const GameStartPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const states = location.state;
-  const { ui } = useGame();
   const { getNextRoute, isConfigValid } = useWorkflowNavigation();
   const { currentScout, currentScoutRoles } = useScout();
   
@@ -178,20 +176,20 @@ const GameStartPage = () => {
     states?.inputs?.eventKey || localStorage.getItem("eventKey") || ""
   );
   const [predictedWinner, setPredictedWinner] = useState<"red" | "blue" | "none">("none");
-  const [scoutOptions, setScoutOptions] = useState<ScoutOptionsState>(() => {
-    const stored = localStorage.getItem(SCOUT_OPTIONS_STORAGE_KEY);
-    if (!stored) return DEFAULT_SCOUT_OPTIONS;
+  // const [scoutOptions, setScoutOptions] = useState<ScoutOptionsState>(() => {
+  //   const stored = localStorage.getItem(SCOUT_OPTIONS_STORAGE_KEY);
+  //   if (!stored) return DEFAULT_SCOUT_OPTIONS;
 
-    try {
-      const parsed = JSON.parse(stored) as ScoutOptionsState;
-      return normalizeAutoCueStartMode({
-        ...DEFAULT_SCOUT_OPTIONS,
-        ...parsed,
-      });
-    } catch {
-      return DEFAULT_SCOUT_OPTIONS;
-    }
-  });
+  //   try {
+  //     const parsed = JSON.parse(stored) as ScoutOptionsState;
+  //     return normalizeAutoCueStartMode({
+  //       ...DEFAULT_SCOUT_OPTIONS,
+  //       ...parsed,
+  //     });
+  //   } catch {
+  //     return DEFAULT_SCOUT_OPTIONS;
+  //   }
+  // });
 
   // Debounce matchNumber for team selection
   useEffect(() => {
@@ -279,42 +277,42 @@ const GameStartPage = () => {
     }
   };
 
-  const handleScoutOptionChange = (key: string, value: boolean) => {
-    setScoutOptions((prev) => {
-      const next = {
-        ...prev,
-        [key]: value,
-      };
+  // const handleScoutOptionChange = (key: string, value: boolean) => {
+  //   setScoutOptions((prev) => {
+  //     const next = {
+  //       ...prev,
+  //       [key]: value,
+  //     };
 
-      if (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation && value) {
-        next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
-        next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
-      }
+  //     if (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation && value) {
+  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
+  //       next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
+  //     }
 
-      if (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry && value) {
-        next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
-        next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
-      }
+  //     if (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry && value) {
+  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
+  //       next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
+  //     }
 
-      if (key === CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s && value) {
-        next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
-        next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
-      }
+  //     if (key === CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s && value) {
+  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
+  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
+  //     }
 
-      if (
-        (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation ||
-          key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry ||
-          key === CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s) &&
-        value === false
-      ) {
-        next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
-        next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
-        next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
-      }
+  //     if (
+  //       (key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation ||
+  //         key === CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry ||
+  //         key === CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s) &&
+  //       value === false
+  //     ) {
+  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromStartConfirmation] = false;
+  //       next[CORE_SCOUT_OPTION_KEYS.startAutoCueFromAutoScreenEntry] = false;
+  //       next[CORE_SCOUT_OPTION_KEYS.autoAdvanceToTeleopAfter20s] = false;
+  //     }
 
-      return normalizeAutoCueStartMode(next);
-    });
-  };
+  //     return normalizeAutoCueStartMode(next);
+  //   });
+  // };
 
   const validateInputs = () => {
     // Check workflow config is valid
@@ -487,11 +485,11 @@ const GameStartPage = () => {
                 ) : (
                   <PlayerStationSheet />
                 )}
-                <ScoutOptionsSheet
+                {/* <ScoutOptionsSheet
                   options={scoutOptions}
                   onOptionChange={handleScoutOptionChange}
                   customContent={ui.ScoutOptionsContent}
-                />
+                /> */}
               </div>
             </div>
           </CardHeader>

@@ -29,7 +29,7 @@ import {
   SCOUT_OPTIONS_STORAGE_KEY,
   getEffectiveScoutOptions,
 } from "@/game-template/scout-options";
-import { Eraser, Save, Settings2, Trash2, X } from "lucide-react";
+import { Eraser, Save, Settings2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ScoutOptionsState } from "@/types";
 
@@ -39,7 +39,7 @@ interface GameSpecificQuestionsProps {
 }
 
 const START_POSITIONS = ['Left Trench', 'Left Bump', 'Hub', 'Right Bump', 'Right Trench'];
-const ROLES = ['Cycler', 'Clean Up', 'Passer', 'Thief', 'Defense'];
+// const ROLES = ['Cycler', 'Clean Up', 'Passer', 'Thief', 'Defense'];
 
 type PitAutoStartPosition = typeof START_POSITIONS[number];
 
@@ -115,12 +115,12 @@ export function GameSpecificQuestions({ gameData = {}, onGameDataChange }: GameS
     handleChange('reportedAutosByStart', next);
   };
 
-  const openRecorder = (start: PitAutoStartPosition) => {
-    const nextIndex = (reportedAutosByStart[start]?.length || 0) + 1;
-    setRecordingStart(start);
-    setRecordingActions([]);
-    setRecordingName(`${start} Auto ${nextIndex}`);
-  };
+  // const openRecorder = (start: PitAutoStartPosition) => {
+  //   const nextIndex = (reportedAutosByStart[start]?.length || 0) + 1;
+  //   setRecordingStart(start);
+  //   setRecordingActions([]);
+  //   setRecordingName(`${start} Auto ${nextIndex}`);
+  // };
 
   const closeRecorder = () => {
     setRecordingStart(null);
@@ -150,44 +150,44 @@ export function GameSpecificQuestions({ gameData = {}, onGameDataChange }: GameS
     closeRecorder();
   };
 
-  const renameReportedAuto = (start: PitAutoStartPosition, autoId: string, name: string) => {
-    const currentAutos = reportedAutosByStart[start] ?? [];
-    const next = {
-      ...reportedAutosByStart,
-      [start]: currentAutos.map((auto) =>
-        auto.id === autoId
-          ? {
-              ...auto,
-              name,
-              updatedAt: Date.now(),
-            }
-          : auto
-      ),
-    };
-    persistReportedAutos(next);
-  };
+  // const renameReportedAuto = (start: PitAutoStartPosition, autoId: string, name: string) => {
+  //   const currentAutos = reportedAutosByStart[start] ?? [];
+  //   const next = {
+  //     ...reportedAutosByStart,
+  //     [start]: currentAutos.map((auto) =>
+  //       auto.id === autoId
+  //         ? {
+  //             ...auto,
+  //             name,
+  //             updatedAt: Date.now(),
+  //           }
+  //         : auto
+  //     ),
+  //   };
+  //   persistReportedAutos(next);
+  // };
 
-  const deleteReportedAuto = (start: PitAutoStartPosition, autoId: string) => {
-    const currentAutos = reportedAutosByStart[start] ?? [];
-    persistReportedAutos({
-      ...reportedAutosByStart,
-      [start]: currentAutos.filter((auto) => auto.id !== autoId),
-    });
-  };
+  // const deleteReportedAuto = (start: PitAutoStartPosition, autoId: string) => {
+  //   const currentAutos = reportedAutosByStart[start] ?? [];
+  //   persistReportedAutos({
+  //     ...reportedAutosByStart,
+  //     [start]: currentAutos.filter((auto) => auto.id !== autoId),
+  //   });
+  // };
 
-  const handleMultiSelectChange = (key: string, value: string, checked: boolean) => {
-    const current = (gameData[key] as string[]) || [];
-    const updated = checked
-      ? [...current, value]
-      : current.filter(v => v !== value);
-    handleChange(key, updated);
-  };
+  // const handleMultiSelectChange = (key: string, value: string, checked: boolean) => {
+  //   const current = (gameData[key] as string[]) || [];
+  //   const updated = checked
+  //     ? [...current, value]
+  //     : current.filter(v => v !== value);
+  //   handleChange(key, updated);
+  // };
 
-  const getRank = (key: string, value: string) => {
-    const selected = (gameData[key] as string[]) || [];
-    const index = selected.indexOf(value);
-    return index >= 0 ? index + 1 : null;
-  };
+  // const getRank = (key: string, value: string) => {
+  //   const selected = (gameData[key] as string[]) || [];
+  //   const index = selected.indexOf(value);
+  //   return index >= 0 ? index + 1 : null;
+  // };
 
   const targetClimbLevel = (gameData.targetClimbLevel as string) || 'none';
   const isTargetClimbLevelNone = targetClimbLevel === 'none';
